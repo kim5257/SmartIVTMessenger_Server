@@ -1,0 +1,26 @@
+doctype html
+html
+    head
+        include head.pug
+        script(src='/javascripts/roomlist.js')
+    body
+        include topbar.pug
+        div(class='list-group item-list')
+            each item in data.room_list
+                - var link = '../room/' + item.room_num
+                - var roomNum = item.room_num
+                - var roomItemId = 'roomItem-' + item.room_num;
+                - var delRoomId = 'delRoom-' + item.room_num;
+                div(class='list-group-item list-group-action d-inline-flex justify-content-between', id=roomItemId)
+                    a(href=link, class='d-flex align-items-center')
+                        i(class='fas fa-comments fa-2x userlist-icon')
+                        p(class='userlist-text') #{item.room_name}
+                    - if (data.user_info.role === 'mgr')
+                        div(class='d-flex align-items-center dropdown dropleft')
+                            button(class='text-dark navbar-toggler', data-toggle='dropdown')
+                                div(class='fas fa-ellipsis-v')
+                            div(class='dropdown-menu')
+                                button(class='dropdown-item text-dark del-room', id=delRoomId, value=roomNum) 대화방 제거
+        - if ( data.user_info.role === 'mgr' )
+            a(href='/addroom', class='fixed-action-btn btn-float')
+                i(class='fa fa-plus fa-2x btn-float-icon')

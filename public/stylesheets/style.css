@@ -1,0 +1,147 @@
+body {
+    padding: 0px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #00B7FF;
+}
+
+.login-page {
+    background-color: #343a40;
+    color: whitesmoke;
+}
+
+.profile-icon {
+    color: lightgray;
+    margin-right: .5em;
+    margin-left: .5em;
+}
+
+.profile-text {
+    display: inline-block;
+    width: auto;
+    text-align: left;
+    margin-right: .5em;
+    margin-left: .5em;
+}
+
+.profile-name {
+    display: block;
+
+}
+
+.menu-item {
+    margin-right: .5em;
+    margin-left: .5em;
+}
+
+.menu-icon {
+    color: whitesmoke;
+    display: inline-block;
+    margin-right: .5em;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+.menu-text {
+    display: inline-block;
+    height: 32px;
+    vertical-align: middle
+}
+
+.room-user-list-text {
+    font-size: 10pt;
+}
+
+.btn-float{
+    display: block;
+    position: fixed;
+    width:63px;
+    height:63px;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99;
+    font-size: 18px;
+    border: none;
+    outline: none;
+    background-color: #303030;
+    color: white;
+    cursor: pointer;
+    padding: 15px;
+    border-radius: 52px;
+}
+
+.btn-float-icon {
+    color: whitesmoke;
+}
+
+.item-list {
+    margin-top: 60px;
+}
+
+.chat-form {
+    padding-left: 0px;
+    padding-right: 0px;
+    width: auto;
+}
+
+.chat-list {
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+    padding: 5px;
+}
+
+.chat-msg-item {
+    margin: 10px;
+    padding-right: 20px;
+    font-size: 10pt;
+}
+
+.chat-msg-item-owner {
+    margin: 10px;
+    padding-left: 20px;
+    font-size: 10pt;
+}
+
+.chat-msg-box {
+    padding: 5px;
+    border: 1px solid #303030;
+    border-radius: 5px;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.chat-msg-box-myself {
+    padding: 5px;
+    border: 1px solid #303030;
+    border-radius: 5px;
+    max-width: 100%;
+    display: inline-block;
+}
+
+.chat-msg-body {
+    margin: 0px;
+}
+
+.userlist-icon {
+    color: darkgray;
+    margin-left: .25em;
+    margin-right: .5em;
+}
+
+.userlist-text {
+    color: #303030;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.addroom-form {
+    margin-top: 50px;
+    margin-bottom: 15px;
+}
+
+.adduser-form {
+    margin-top: 55px;
+    margin-bottom: 15px;
+}

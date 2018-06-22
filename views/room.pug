@@ -1,0 +1,9 @@
+doctype html
+html
+    head
+        include head.pug
+        script(src='/javascripts/room.js')
+    body
+        include topbar_room.pug
+        ul(class='chat-list' id='msg_list')
+        include bottom_room.pug

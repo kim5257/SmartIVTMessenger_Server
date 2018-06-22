@@ -1,0 +1,19 @@
+doctype html
+html
+    head
+        include head.pug
+    body
+        - var postAddr = '/room/' + data.room_num + '/invite';
+        form(action=postAddr, method='post')
+            include topbar_inviteroom.pug
+            div(class='container addroom-form')
+                h6 회원 목록
+                div(class='list-group')
+                    each item in data.user_list
+                        - var chkboxVal = item['user_id'];
+                        a(class='list-group-item list-group-action align-items-center')
+                            label(class='checkbox-container')
+                                span(class='fa fa-user fa-2x mr-2')
+                                span #{item.user_name}
+                                input(type='checkbox', name='user_list', id='user_list', value=chkboxVal)
+                                span(class='checkbox-checkmark')

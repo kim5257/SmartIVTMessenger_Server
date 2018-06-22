@@ -1,0 +1,26 @@
+doctype html
+html
+    head
+        include head.pug
+    body(class='login-page')
+        div(class='container', style='max-width:520px;')
+            form(action='/register', method='post')
+                div(class='row m-4 justify-content-center')
+                    div(class='col-sm-12 mt-5 mb-5')
+                        img(src='/images/logo.png' class='mx-auto d-block img-fluid' alt='app logo')
+                    div(class='col-sm-12 mt-2 mb-2')
+                        p 서비스를 사용하기 위해서는 다음 정보를 필요로 합니다.
+                    div(class='col-sm-12 mt-2 mb-2')
+                        input(type='text', class='form-control', id='user_name', name='user_name', placeholder='사용자 이름')
+                    div(class='col-sm-12 mt-2 mb-2')
+                        div(class='list-group')
+                            label(class='checkbox-container pt-2 pb-2 mt-1 mb-1')
+                                span 상담사
+                                input(type='radio', name='role', value='mgr')
+                                span(class='checkbox-checkmark')
+                            label(class='checkbox-container pt-2 pb-2 mt-1 mb-1')
+                                span 회원
+                                input(type='radio', name='role', value='usr', checked='checked')
+                                span(class='checkbox-checkmark')
+                    div(class='col-sm-8 align-self-center mt-2 mb-2')
+                        button(type='submit', class='btn btn-secondary btn-lg btn-block') 등록

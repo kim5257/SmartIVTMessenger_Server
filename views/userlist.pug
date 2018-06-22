@@ -1,0 +1,30 @@
+doctype html
+html
+    head
+        include head.pug
+        script(src='/javascripts/userlist.js')
+    body
+        include topbar.pug
+        div(class='container-fluid pr-0 pl-0')
+            div(class='list-group item-list')
+                each item in data.user_list
+                    - var user_id = item.user_id
+                    - var userItemId = 'userItem-' + user_id;
+                    - var delUserId = 'delUser-' + user_id;
+                    - if (item.user_id != data.user_info.user_id)
+                        li(class='list-group-item text-dark d-inline-flex justify-content-between', id=userItemId)
+                            div(class='d-inline-flex align-items-center')
+                                div(class='fas fa-user fa-2x mr-3')
+                                div
+                                    p(class='font mr-3 mb-0') #{item.user_name}
+                                    - if (item.email != null)
+                                        small #{item.email}
+                            - if (data.user_info.role === 'mgr')
+                                div(class='d-inline-flex align-items-center dropdown dropleft')
+                                    button(class='text-dark navbar-toggler', data-toggle='dropdown')
+                                        div(class='fas fa-ellipsis-v')
+                                    div(class='dropdown-menu')
+                                        button(class='dropdown-item text-dark del-user', id=delUserId, value=user_id) 등록 해제
+            div(class='fixed-action-btn')
+                a(href='/adduser', class='btn-float')
+                    i(class='fa fa-plus fa-2x btn-float-icon')

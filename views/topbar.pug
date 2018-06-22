@@ -1,0 +1,31 @@
+div(class='pos-f-t fixed-top')
+    nav(class='navbar navbar-dark bg-dark')
+        button(class='navbar-toggler', type='button', data-toggle='collapse', data-target='#navbarToggleMenu', aria-controls='navbarToggleExternalContent', aria-expanded='false', aria-label='Toggle Menu')
+            span(class='navbar-toggler-icon')
+        span(class='text-white') #{title}
+    div(class='collapse', id='navbarToggleMenu')
+        div(class='bg-dark p-2')
+            span(class='profile-icon')
+                i(class='far fa-address-card fa-3x')
+            - if ( data.user_info.role === 'mgr' )
+                span(class='text-white font-weight-bold profile-text') 상담사
+            - else
+                span(class='text-white font-weight-bold profile-text') 회원
+                #{data.user_info.role}
+            span(class='text-white font-weight-bold profile-text profile-name') #{data.user_info.user_name} (#{data.user_info.email})
+            a(href='/logout')
+                span(class='text-white profile-text') 로그아웃
+
+        div(class='bg-secondary p-4')
+            ul(class='nav flex-column')
+                - if ( data.user_info.role === 'mgr' )
+                    li(class='nav-item menu-item')
+                        a(class='nav-link' href='/userlist')
+                            span(class='menu-icon')
+                                i(class='fas fa-user fa-2x')
+                            span(class='text-white menu-text') 회원
+                li(class='nav-item menu-item')
+                    a(class='nav-link' href='/roomlist')
+                        span(class='menu-icon')
+                            i(class='fas fa-comment-alt fa-2x')
+                        span(class='text-white menu-text') 대화
