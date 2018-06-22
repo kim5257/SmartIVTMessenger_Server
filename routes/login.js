@@ -23,6 +23,7 @@ router.get('/auth/naver',
         scope: ['name']
     })
 );
+
 router.get('/auth/naver/callback',
     passport.authenticate('naver', {
         failureRedirect: '/login',
@@ -38,6 +39,7 @@ router.get('/auth/naver/callback',
         //res.redirect('/');
     }
 );
+
 router.post('/auth/naver/callback', function(req, res, next) {
     console.log('naver callback: ' + req.body.fcm_token);
 
@@ -59,14 +61,33 @@ router.get('/auth/google',
         scope: ['email']
     })
 );
+
 router.get('/auth/google/callback',
     passport.authenticate('google', {
         failureRedirect: '/login',
         scope: ['email']
     }),
     function(req, res){
-        res.redirect('/');
+        req['data'] = {};
+        req['data']['user_info'] = req.user;
+
+        res.render('auth/googlecallback', { data: req['data'] });
     }
 );
+
+router.post('/auth/google/callback', function(req, res, next) {
+    console.log('google callback: ' + req.body.fcm_token);
+
+    dbctrl.registerToken(req.body.user_id, req.body.fcm_token, (result) => {
+        if ( result.result === 'success' ) {
+            next ();
+        }
+        else {
+            res.json({result: 'failed'});
+        }
+    });
+}, function(req, res) {
+    res.json({result: 'success'});
+});
 
 module.exports = router;
