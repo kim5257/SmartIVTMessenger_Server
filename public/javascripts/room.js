@@ -1,7 +1,25 @@
 $(function (){
+
+    function cvtUTC2Local (date) {
+        var now = new Date();
+        date.setUTCMinutes(-now.getTimezoneOffset() + date.getMinutes());
+        return date;
+    }
+
     function makeMsgForm (owner, fromName, val, msgNo, timestamp)
     {
         var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
+
+        // 시간대 변환
+        var utcDate = new Date(timestamp);
+        var localDate = cvtUTC2Local(utcDate);
+        var dateString = moment(localDate).format('YYYY-MM-DD HH:mm');
+
+        console.log(timestamp);
+        console.log(utcDate.toString());
+        console.log(localDate.toString());
+        console.log(dateString);
+
 
         if ( owner == false ) {
             return "<li class=\"media chat-msg-item\"" + id + ">" +
@@ -9,7 +27,7 @@ $(function (){
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
                 "<h6 class=\"mt-0\">" + fromName + "</h6>" +
-                "<small>" + timestamp + "</small>" +
+                "<small>" + dateString + "</small>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
@@ -22,7 +40,7 @@ $(function (){
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
                 "<p></p>" +
-                "<small>" + timestamp + "</small>" +
+                "<small>" + dateString + "</small>" +
                 "</div>" +
                 "<div style=\"justify-content: flex-end;display: flex;\">" +
                 "<div class=\"chat-msg-box-myself\">" +
@@ -66,14 +84,14 @@ $(function (){
         console.log(JSON.stringify(msg));
         msg.val = msg.val.replace(/\n/g, '<br>');
 
-        var timeString = msg.timestamp.substring(0, msg.timestamp.length-3);
+        //var timeString = msg.timestamp.substring(0, msg.timestamp.length-3);
 
         if ( data.user_info['user_id'] != msg.from ) {
-            $('#msg_list').append(makeMsgForm(false, msg.from_name, msg.val, null, timeString));
+            $('#msg_list').append(makeMsgForm(false, msg.from_name, msg.val, null, msg.timestamp));
             window.scrollTo(0, document.body.scrollHeight);
         }
         else {
-            $('#msg_list').append(makeMsgForm(true, msg.from_name, msg.val, null, timeString));
+            $('#msg_list').append(makeMsgForm(true, msg.from_name, msg.val, null, msg.timestamp));
             window.scrollTo(0, document.body.scrollHeight);
         }
     });
@@ -85,16 +103,16 @@ $(function (){
         {
             var extraMsgForm = '';
             res.messages.forEach((item) => {
-                var timeString = item.timestamp.substring(0, item.timestamp.length-3);
+                //var timeString = item.timestamp.substring(0, item.timestamp.length-3);
 
                 item.message = item.message.replace(/\n/g, '<br>');
 
                 if ( data.user_info['user_id'] != item['from'] ){
-                    extraMsgForm = makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString) + extraMsgForm;
+                    extraMsgForm = makeMsgForm(false, item.from_name, item.message, item['msg_no'], item.timestamp) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString));
                 }
                 else {
-                    extraMsgForm = makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString) + extraMsgForm;
+                    extraMsgForm = makeMsgForm(true, item.from_name, item.message, item['msg_no'], item.timestamp) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString));
                 }
             });
