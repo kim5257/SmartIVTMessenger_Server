@@ -15,12 +15,6 @@ $(function (){
         var localDate = cvtUTC2Local(utcDate);
         var dateString = moment(localDate).format('YYYY-MM-DD HH:mm');
 
-        console.log(timestamp);
-        console.log(utcDate.toString());
-        console.log(localDate.toString());
-        console.log(dateString);
-
-
         if ( owner == false ) {
             return "<li class=\"media chat-msg-item\"" + id + ">" +
                 "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +

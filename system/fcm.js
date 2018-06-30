@@ -25,6 +25,23 @@ function sendMessage_ (tokens, roomName, msg) {
         }
         else {
             console.log("Success: " + JSON.stringify(response));
+            var resp = JSON.parse(response);
+
+            var delIds = [];
+
+            // 여기서 결과를 확인하여 "NotRegistered" 에러인 메시지 토큰은 DB에서 제거
+            resp.results.forEach((item, idx) => {
+                if ( item.error === 'NotRegistered' ) {
+                    delIds.push(tokens[idx]);
+                }
+            });
+
+            // 등록해제된 토큰이 있다면 제거 요청
+            if ( 0 < delIds.length ) {
+                dbctrl.unregisterToken(delIds, (result) => {
+                    // 아무것도 하지 않음.
+                });
+            }
         }
     });
 }

@@ -443,6 +443,7 @@ function readMsg (roomNum, from, to, limit, offset, callback) {
     LEFT JOIN chat_server.users ON msg_list.from=users.user_id
     ORDER BY msg_no desc limit 20;
     */
+    var startOffset = ' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id=\'' + from + '\' and room_num=\'' + roomNum + '\') < msg_no)';
 
     var notFirstTry = (offset==0)?(''):(' and (msg_no < ' + offset + ' )');
 
@@ -457,7 +458,7 @@ function readMsg (roomNum, from, to, limit, offset, callback) {
     var query =
         'SELECT `msg_no`, `from`, `user_name` as `from_name`, `to`, `message`, `timestamp` FROM\n' +
         '    (SELECT `msg_no`, `from`, `to`, `message`, `timestamp` FROM chat_server.messages\n' +
-        '    WHERE room_num=:roomNum' + notFirstTry + toCondition + ') as msg_list\n' +
+        '    WHERE room_num=:roomNum' + startOffset + notFirstTry + toCondition + ') as msg_list\n' +
         'LEFT JOIN chat_server.users ON msg_list.from=users.user_id\n' +
         'ORDER BY msg_no desc limit ' + limit;
 
@@ -507,6 +508,23 @@ function registerToken (userId, token, callback) {
     console.log('registerToken: ' + queryFmt(queryArgs));
 
     dbClient.query(queryFmt(queryArgs)).on('end', function (){
+        callback({result: 'success'});
+    });
+}
+
+function unregisterToken (tokens, callback) {
+    /*
+    DELETE FROM `chat_server`.`tokens`
+    WHERE token IN (xxxx, xxxxx);
+    */
+
+    var query =
+        'DELETE FROM `chat_server`.`tokens`\n' +
+        'WHERE token IN (\'' + tokens.join('\', \'') + '\')';
+
+    console.log('registerToken: ' + query);
+
+    dbClient.query(query).on('end', function (){
         callback({result: 'success'});
     });
 }
@@ -599,6 +617,7 @@ exports.delRoomUser = delRoomUser;
 exports.writeMsg = writeMsg;
 exports.readMsg = readMsg;
 exports.registerToken = registerToken;
+exports.unregisterToken = unregisterToken;
 exports.getTokenByRoomId = getTokenByRoomId;
 exports.getTokenByUserId = getTokenByUserId;
 
