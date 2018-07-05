@@ -78,8 +78,10 @@ router.post('/:room_num/invite', function(req, res, next) {
     if (req.body['user_list'] == null) {
         next ();
     }
-    else if ( !Array.isArray(req.body['user_list']) ) {
-        req.body['user_list'] = [req.body['user_list']];
+    else{
+        if ( !Array.isArray(req.body['user_list']) ) {
+            req.body['user_list'] = [req.body['user_list']];
+        }
 
         dbctrl.addRoomUser(req.params['room_num'], req.body['user_list'], function(result) {
             if (result.result === 'success') {

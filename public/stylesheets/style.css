@@ -18,6 +18,14 @@ a {
     margin-left: .5em;
 }
 
+.profile-img {
+    object-fit: cover;
+    height: 60px;
+    height: 60px;
+    margin-right: .3em;
+    margin-left: .3em;
+}
+
 .profile-text {
     display: inline-block;
     width: auto;
@@ -125,6 +133,11 @@ a {
 }
 
 .userlist-icon {
+    height: 32px !important;
+    width: 32px !important;
+}
+
+.roomlist-icon {
     color: darkgray;
     margin-left: .25em;
     margin-right: .5em;

@@ -19,6 +19,7 @@ exports.initAuth = function initAuth() {
             {
                 user['user_name'] = result.info['user_name'];
                 user['role'] = result.info['role'];
+                user['profile_img'] = result.info['profile_img'];
             }
 
             done(null, user);
@@ -36,6 +37,7 @@ exports.initAuth = function initAuth() {
             {
                 user['user_name'] = result.info['user_name'];
                 user['role'] = result.info['role'];
+                user['profile_img'] = result.info['profile_img'];
             }
 
             done(null, user);
@@ -61,6 +63,16 @@ exports.initAuth = function initAuth() {
                 {
                     user['user_name'] = result.info['user_name'];
                     user['role'] = result.info['role'];
+                    user['profile_img'] = result.info['profile_img'];
+
+                    console.log('pre img: ' + user['profile_img'] + ', new img: ' + profile._json.profile_image);
+
+                    // 프로파일 이미지가 변경되었으면 업데이트
+                    if ( user['profile_img'] != profile._json.profile_image ) {
+                        dbctrl.updateUser (user.user_id, profile._json.profile_image, (result) => {
+                            // 아무것도 하지 않음.
+                        });
+                    }
                 }
 
                 done(null, user);
@@ -94,6 +106,15 @@ exports.initAuth = function initAuth() {
                 {
                     user['user_name'] = result.info['user_name'];
                     user['role'] = result.info['role'];
+
+                    console.log('pre img: ' + user['profile_img'] + ', new img: ' + profile.photos[0].value);
+
+                    // 프로파일 이미지가 변경되었으면 업데이트
+                    if ( user['profile_img'] != profile.photos[0].value ) {
+                        dbctrl.updateUser (user.user_id, profile.photos[0].value, (result) => {
+                            // 아무것도 하지 않음.
+                        });
+                    }
                 }
 
                 done(null, user);

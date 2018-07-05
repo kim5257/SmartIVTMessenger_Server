@@ -73,8 +73,26 @@ function registerUser (id, name, email, role, callback) {
     });
 }
 
+function updateUser (userId, profileImg, callback) {
+    var query = 'UPDATE chat_server.users\n' +
+        'SET profile_img=:profileImg\n' +
+        'WHERE user_id=:userId';
+
+    var queryFmt = dbClient.prepare(query);
+    var queryArgs = {
+        userId: userId,
+        profileImg: profileImg
+    };
+
+    console.log('query: ' + queryFmt(queryArgs));
+
+    dbClient.query(queryFmt(queryArgs)).on('end', function (){
+        callback({result: 'success'});
+    });
+}
+
 function getUserInfo (id, callback) {
-    var query = 'SELECT user_id, user_name, role FROM chat_server.users ' +
+    var query = 'SELECT user_id, user_name, role, profile_img FROM chat_server.users ' +
         'WHERE user_id=:id';
 
     var queryFmt = dbClient.prepare(query);
@@ -97,7 +115,7 @@ function getUserInfo (id, callback) {
 
 function getUserList (id, callback)
 {
-    var query = 'SELECT users.user_id, users.user_name, users.email FROM chat_server.user_map ' +
+    var query = 'SELECT users.user_id, users.user_name, users.email, users.profile_img FROM chat_server.user_map ' +
         'INNER JOIN chat_server.users ON users.user_id=user_map.user_id ' +
         'WHERE user_map.mgr_id=:id';
 
@@ -601,6 +619,7 @@ function showDatabases () {
 
 exports.chkValidUser = chkValidUser;
 exports.registerUser = registerUser;
+exports.updateUser = updateUser;
 exports.getUserInfo = getUserInfo;
 exports.getUserList = getUserList;
 exports.getFreeUserList = getFreeUserList;

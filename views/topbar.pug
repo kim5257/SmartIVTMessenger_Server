@@ -4,17 +4,22 @@ div(class='pos-f-t fixed-top')
             span(class='navbar-toggler-icon')
         span(class='text-white') #{title}
     div(class='collapse', id='navbarToggleMenu')
-        div(class='bg-dark p-2')
+        div(class='bg-dark p-2 d-flex align-items-center')
             span(class='profile-icon')
-                i(class='far fa-address-card fa-3x')
-            - if ( data.user_info.role === 'mgr' )
-                span(class='text-white font-weight-bold profile-text') 상담사
-            - else
-                span(class='text-white font-weight-bold profile-text') 회원
-                #{data.user_info.role}
-            span(class='text-white font-weight-bold profile-text profile-name') #{data.user_info.user_name} (#{data.user_info.email})
-            a(href='/logout')
-                span(class='text-white profile-text') 로그아웃
+                - var profileImg = data.user_info.profile_img;
+                - if ( profileImg != null && profileImg != "" )
+                    img(src=profileImg, class='rounded-circle profile-img', alt='Profile Image')
+                - else
+                    i(class='far fa-address-card fa-3x')
+            div(class='col p-1')
+                - if ( data.user_info.role === 'mgr' )
+                    span(class='text-white font-weight-bold profile-text') 상담사
+                - else
+                    span(class='text-white font-weight-bold profile-text') 회원
+                    #{data.user_info.role}
+                span(class='text-white font-weight-bold profile-text profile-name') #{data.user_info.user_name} (#{data.user_info.email})
+                a(href='/logout')
+                    span(class='text-white profile-text') 로그아웃
 
         div(class='bg-secondary p-4')
             ul(class='nav flex-column')

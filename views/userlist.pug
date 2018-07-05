@@ -11,10 +11,14 @@ html
                     - var user_id = item.user_id
                     - var userItemId = 'userItem-' + user_id;
                     - var delUserId = 'delUser-' + user_id;
+                    - var profileImg = item.profile_img;
                     - if (item.user_id != data.user_info.user_id)
                         li(class='list-group-item text-dark d-inline-flex justify-content-between', id=userItemId)
                             div(class='d-inline-flex align-items-center')
-                                div(class='fas fa-user fa-2x mr-3')
+                                - if ( profileImg != null && profileImg != "" )
+                                    img(src=profileImg, class='rounded-circle mr-3 userlist-icon', alt='Profile Image')
+                                - else
+                                    div(class='fas fa-user mr-3 userlist-icon')
                                 div
                                     p(class='font mr-3 mb-0') #{item.user_name}
                                     - if (item.email != null)
