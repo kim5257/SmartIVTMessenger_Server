@@ -54,6 +54,7 @@ exports.initAuth = function initAuth() {
 
                 var user = {
                     user_id: user_id,
+                    user_name: profile.name,
                     email: profile._json.email
                 };
 

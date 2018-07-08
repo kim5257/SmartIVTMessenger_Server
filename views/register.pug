@@ -11,7 +11,9 @@ html
                     div(class='col-sm-12 mt-2 mb-2')
                         p 서비스를 사용하기 위해서는 다음 정보를 필요로 합니다.
                     div(class='col-sm-12 mt-2 mb-2')
-                        input(type='text', class='form-control', id='user_name', name='user_name', placeholder='사용자 이름')
+                        - var user_name = data.user_name;
+                        p 사용자 이름 :
+                        input(type='text', class='form-control', id='user_name', name='user_name', value=user_name)
                     div(class='col-sm-12 mt-2 mb-2')
                         div(class='list-group')
                             label(class='checkbox-container pt-2 pb-2 mt-1 mb-1')
