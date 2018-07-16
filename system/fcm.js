@@ -13,7 +13,8 @@ function sendMessage_ (tokens, roomName, msg) {
         notification: {
             title: roomName,
             body: msg,
-            icon: 'ic_stat_notification'
+            icon: 'ic_stat_notification',
+            sound: 'default',
         }
     };
 

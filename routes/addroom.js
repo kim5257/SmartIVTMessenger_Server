@@ -12,11 +12,23 @@ router.get('/', function(req, res, next) {
     }
 }, function(req, res, next) {
 
+    req['data'] = {};
+
     // 대화방에 초대를 위해 사용자 목록 가져오기
     dbctrl.getUserList(req.user['user_id'], function (result) {
         if (result.result === 'success') {
-            req['data'] = {};
             req['data']['user_list'] = result.userList;
+            next();
+        }
+        else {
+            res.status(500).send(JSON.stringify({result: 'error', msg: result.msg}));
+        }
+    });
+}, function (req, res, next) {
+    // 대화방에 초대를 위해 상담사 목록 가져오기
+    dbctrl.getMgrList(req.user['user_id'], function (result) {
+        if (result.result === 'success') {
+            req['data']['mgr_list'] = result.mgrList;
             next();
         }
         else {

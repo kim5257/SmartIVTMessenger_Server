@@ -131,6 +131,23 @@ function getUserList (id, callback)
     });
 }
 
+function getMgrList (id, callback) {
+    var query =
+        'SELECT * FROM chat_server.users\n' +
+        'WHERE role=\'mgr\' and user_id!=:id;';
+
+    var queryFmt = dbClient.prepare(query);
+    var mgrList = [];
+
+    dbClient.query(queryFmt({id: id})).on('result', function (result){
+        result.on('data', function (row){
+            mgrList.push(row);
+        });
+    }).on('end', function (){
+        callback({result: 'success', mgrList: mgrList});
+    });
+}
+
 // 등록되지 않은 사용자 리스트 가져오기
 function getFreeUserList (id, callback)
 {
@@ -685,6 +702,7 @@ exports.registerUser = registerUser;
 exports.updateUser = updateUser;
 exports.getUserInfo = getUserInfo;
 exports.getUserList = getUserList;
+exports.getMgrList = getMgrList;
 exports.getFreeUserList = getFreeUserList;
 exports.getRoomList = getRoomList;
 exports.getRoomInfo = getRoomInfo;
