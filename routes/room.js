@@ -52,12 +52,26 @@ router.get('/:room_num/invite', function(req, res, next) {
         res.redirect('/login');
     }
 }, function(req, res, next) {
+
+    req['data'] = {};
+
     // 초대 가능한 회원 리스트 가져오기
     dbctrl.getInviteUserList(req.params['room_num'], req.user['user_id'],
     function (result) {
         if (result.result === 'success') {
-            req['data'] = {};
             req['data']['user_list'] = result.userList;
+            next ();
+        }
+        else {
+            res.status(500).send(JSON.stringify({result: 'error', msg: result.msg}));
+        }
+    });
+}, function(req, res, next) {
+    // 초대 가능한 상담사 리스트 가져오기
+    dbctrl.getInviteMgrList(req.params['room_num'], req.user['user_id'],
+    function (result) {
+        if (result.result === 'success') {
+            req['data']['mgr_list'] = result.mgrList;
             next ();
         }
         else {

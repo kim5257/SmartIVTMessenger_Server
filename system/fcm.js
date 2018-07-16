@@ -63,6 +63,14 @@ function sendMessage (msg) {
                     }
                 });
             }
+            else if ( msg.pack.to === 'mgr' ) {
+                // 상담사 토큰 가져오기 (본인 빼고)
+                dbctrl.getTokenByRoomIdOnlyMgr(msg.room_num, msg.pack.from, (result2) => {
+                    if (result2.result === 'success') {
+                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.val);
+                    }
+                });
+            }
             else {
                 // 한 사용자의 토큰 가져오기
                 dbctrl.getTokenByUserId(msg.pack.to, (result2) => {

@@ -56,7 +56,7 @@ $(function (){
     var pktReqLog = {
         room_num: data.room_info['room_num'],
         from: data.user_info['user_id'],
-        to: ['all', data.user_info['user_id']],
+        to: ['all', 'mgr', data.user_info['user_id']],
         limit: 20,
         offset: 0,
     };
@@ -153,7 +153,7 @@ $(function (){
                 pack: {
                     from: data.user_info['user_id'],
                     from_name: data.user_info['user_name'],
-                    to: (data.user_info['role'] === 'mgr') ? ('all') : (data.room_info['mgr_id']),
+                    to: (data.user_info['role'] === 'mgr') ? ('all') : ('mgr'),
                     val: $('#msg').val()
                 }
             }

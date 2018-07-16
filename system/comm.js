@@ -27,6 +27,13 @@ function initSock (server, cookieParser, sessionStore) {
 
             sock.join(all);
             sock.join(user);
+
+            // 상담사일경우 mgr 타입도 수신
+            if ( sock.request.user.role === 'mgr' )
+            {
+                var mgr = msg.room_num + '/mgr';
+                sock.join(mgr);
+            }
         });
 
         sock.on('join_userlist', function(msg) {
@@ -59,6 +66,8 @@ function initSock (server, cookieParser, sessionStore) {
                     var to = msg.room_num + '/' + msg.pack.to;
                     
                     io.to(to).emit('chat_msg', msg.pack);
+
+                    // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
                     if ( msg.pack.to != 'all' ) {
                         var me = msg.room_num + '/' + msg.pack.from;
                         io.to(me).emit('chat_msg', msg.pack);

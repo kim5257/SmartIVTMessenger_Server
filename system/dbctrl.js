@@ -236,7 +236,7 @@ function getRoomUserList (roomNum, callback) {
 
 function getInviteUserList (roomNum, mgrId, callback) {
     /*
-    SELECT users.user_id, users.user_name, users.email FROM chat_server.users
+    SELECT users.user_id, users.user_name, users.email, users.role FROM chat_server.users
     LEFT JOIN
         chat_server.user_map
     ON
@@ -246,11 +246,11 @@ function getInviteUserList (roomNum, mgrId, callback) {
          WHERE room_num='1528733223156') as room_user_map
     ON
         chat_server.users.user_id=room_user_map.user_id
-    WHERE (room_user_map.user_id IS NULL) and (users.role='usr') and user_map.mgr_id='naver:26042906';
+    WHERE (room_user_map.user_id IS NULL) and user_map.mgr_id='naver:26042906';
      */
 
     var query =
-        'SELECT users.user_id, users.user_name, users.email FROM chat_server.users\n' +
+        'SELECT users.user_id, users.user_name, users.email, users.role FROM chat_server.users\n' +
         'LEFT JOIN\n' +
         '\tchat_server.user_map\n' +
         'ON\n' +
@@ -260,7 +260,7 @@ function getInviteUserList (roomNum, mgrId, callback) {
         '\t WHERE room_num=:roomNum) as room_user_map\n' +
         'ON\n' +
         '\tchat_server.users.user_id=room_user_map.user_id\n' +
-        'WHERE (room_user_map.user_id IS NULL) and (users.role=\'usr\') and user_map.mgr_id=:mgrId;';
+        'WHERE (room_user_map.user_id IS NULL) and user_map.mgr_id=:mgrId;';
 
     var queryFmt = dbClient.prepare(query);
     var userList = [];
@@ -273,6 +273,35 @@ function getInviteUserList (roomNum, mgrId, callback) {
         });
     }).on('end', function (){
         callback({result: 'success', userList: userList});
+    });
+}
+
+function getInviteMgrList (roomNum, mgrId, callback) {
+    /*
+    SELECT * FROM
+        (SELECT * FROM chat_server.users WHERE role='mgr') AS mgr_list
+    WHERE user_id NOT IN (
+        SELECT user_id FROM chat_server.room_user_map
+        WHERE room_num='1531227210745')
+     */
+
+    var query =
+        'SELECT mgr_list.user_id, mgr_list.user_name, mgr_list.email, mgr_list.role FROM\n' +
+        '    (SELECT * FROM chat_server.users WHERE role=\'mgr\') AS mgr_list\n' +
+        'WHERE user_id NOT IN \n' +
+        '    (SELECT user_id FROM chat_server.room_user_map \n' +
+        '    WHERE room_num=:roomNum)'
+    var queryFmt = dbClient.prepare(query);
+    var mgrList = [];
+
+    console.log('query: ' + queryFmt({roomNum: roomNum, mgrId: mgrId}));
+
+    dbClient.query(queryFmt({roomNum: roomNum, mgrId: mgrId})).on('result', function (result){
+        result.on('data', function (row){
+            mgrList.push(row);
+        });
+    }).on('end', function (){
+        callback({result: 'success', mgrList: mgrList});
     });
 }
 
@@ -578,6 +607,40 @@ function getTokenByRoomId (roomNum, fromId, callback) {
     });
 }
 
+function getTokenByRoomIdOnlyMgr (roomNum, fromId, callback) {
+    /*
+    SELECT tokens.user_id, tokens.token FROM
+        (SELECT user_id FROM chat_server.room_user_map WHERE room_num='1531227210745' and user_id!='naver-26042906') as user_list
+        INNER JOIN chat_server.users ON user_list.user_id=users.user_id
+        INNER JOIN chat_server.tokens ON user_list.user_id=tokens.user_id
+        WHERE users.role='mgr'
+     */
+
+    var query =
+        'SELECT tokens.user_id, tokens.token FROM\n' +
+        '    (SELECT user_id FROM chat_server.room_user_map WHERE room_num=:roomNum and user_id!=:fromId) as user_list\n' +
+        'INNER JOIN chat_server.users ON user_list.user_id=users.user_id\n' +
+        'INNER JOIN chat_server.tokens ON user_list.user_id=tokens.user_id\n' +
+        'WHERE users.role=\'mgr\'';
+
+    var queryFmt = dbClient.prepare(query);
+    var queryArgs = {
+        roomNum: roomNum,
+        fromId: fromId
+    };
+    var tokenList = [];
+
+    console.log('getTokenByRoomIdOnlyMgr: ' + queryFmt(queryArgs));
+
+    dbClient.query(queryFmt(queryArgs)).on('result', function (result){
+        result.on('data', function (row){
+            tokenList.push(row.token);
+        });
+    }).on('end', function (){
+        callback({result: 'success', tokenList: tokenList});
+    });
+}
+
 function getTokenByUserId (userId, callback) {
     /*
     SELECT token FROM chat_server.tokens
@@ -627,6 +690,7 @@ exports.getRoomList = getRoomList;
 exports.getRoomInfo = getRoomInfo;
 exports.getRoomUserList = getRoomUserList;
 exports.getInviteUserList = getInviteUserList;
+exports.getInviteMgrList = getInviteMgrList;
 exports.addUser = addUser;
 exports.delUser = delUser;
 exports.addRoom = addRoom;
@@ -638,6 +702,7 @@ exports.readMsg = readMsg;
 exports.registerToken = registerToken;
 exports.unregisterToken = unregisterToken;
 exports.getTokenByRoomId = getTokenByRoomId;
+exports.getTokenByRoomIdOnlyMgr = getTokenByRoomIdOnlyMgr;
 exports.getTokenByUserId = getTokenByUserId;
 
 exports.showDatabases = showDatabases;

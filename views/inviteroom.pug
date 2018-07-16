@@ -9,6 +9,14 @@ html
             div(class='container addroom-form')
                 h6 회원 목록
                 div(class='list-group')
+                    each item in data.mgr_list
+                        - var chkboxVal = item['user_id'];
+                        a(class='list-group-item list-group-action align-items-center')
+                            label(class='checkbox-container')
+                                span(class='fa fa-user fa-2x mr-2')
+                                span #{item.user_name} 상담사
+                                input(type='checkbox', name='user_list', id='user_list', value=chkboxVal)
+                                span(class='checkbox-checkmark')
                     each item in data.user_list
                         - var chkboxVal = item['user_id'];
                         a(class='list-group-item list-group-action align-items-center')
