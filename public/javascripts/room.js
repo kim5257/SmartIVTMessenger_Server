@@ -142,23 +142,79 @@ $(function (){
     sock.emit('join_room', pktJoin);
     sock.emit('req_msg_log', pktReqLog);
 
-    $('form').submit(function(){
-
+    $('#send-msg').submit(function(){
         console.log(data.user_info.role);
 
-        var msg = {
-            room_num: data.room_info['room_num'],
-            pack: {
-                from: data.user_info['user_id'],
-                from_name: data.user_info['user_name'],
-                to: (data.user_info['role'] === 'mgr') ? ('all') : (data.room_info['mgr_id']),
-                val: $('#msg').val()
+        console.log($('#msg').val());
+
+        if ( $('#msg').val() != '' ) {
+            var msg = {
+                room_num: data.room_info['room_num'],
+                pack: {
+                    from: data.user_info['user_id'],
+                    from_name: data.user_info['user_name'],
+                    to: (data.user_info['role'] === 'mgr') ? ('all') : (data.room_info['mgr_id']),
+                    val: $('#msg').val()
+                }
             }
+
+            sock.emit('chat_msg', msg);
+            $('#msg').val('');
         }
 
-        sock.emit('chat_msg', msg);
-        $('#msg').val('');
         return false;
+    });
+
+    function uploadFile(formData) {
+
+        var url = '/room/' + data.room_info['room_num'] + '/upload';
+
+        console.log(url);
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                var xhr = new XMLHttpRequest();
+
+                xhr.upload.addEventListener('progress', function(event) {
+                    var progressBar = $('.progress-bar');
+
+                    if ( event.lengthComputable ) {
+                        var percent = (event.loaded / event.total) * 100;
+                        progressBar.width(percent + '%');
+
+                        if ( percent === 100 )
+                        {
+                            progressBar.removeClass('active');
+                        }
+                    }
+                });
+
+                return xhr;
+            }
+        }).done(handleSuccess).fail(function(xhr, status) {
+            alert(status);
+        });
+    }
+
+    function handleSuccess(data) {
+        // Do nothing at now
+    }
+
+    $('#send-img').submit(function(event){
+
+        event.preventDefault();
+
+        var file = $('#input-file').get(0).files[0];
+        var formData = new FormData();
+
+        formData.append('photos[]', file, file.name);
+
+        uploadFile(formData);
     });
 
     $(window).scroll(function() {
@@ -185,6 +241,13 @@ $(function (){
         }
 
         sock.emit('req_except_user', msg);
+    });
+
+    $('#input-file').change(function(event) {
+
+        var filePath = URL.createObjectURL(event.target.files[0]);
+
+        $('#img').attr('src', filePath);
     });
 });
 
