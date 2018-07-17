@@ -56,10 +56,14 @@ $(function (){
     var pktReqLog = {
         room_num: data.room_info['room_num'],
         from: data.user_info['user_id'],
-        to: ['all', 'mgr', data.user_info['user_id']],
+        to: ['all', data.user_info['user_id']],
         limit: 20,
         offset: 0,
     };
+
+    if ( data.user_info['role'] === 'mgr' ) {
+        pktReqLog.to.push('mgr');
+    }
 
     sock.on('reconnect', function(){
         console.log('reconnect');
