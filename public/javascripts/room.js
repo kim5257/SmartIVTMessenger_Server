@@ -146,6 +146,14 @@ $(function (){
     sock.emit('join_room', pktJoin);
     sock.emit('req_msg_log', pktReqLog);
 
+    $('#send-msg').keydown(function(event) {
+        if ( (event.ctrlKey === true) &&
+            (event.keyCode === 13) ) {
+            // Ctrl+Enter
+            $(this).trigger('submit');
+        }
+    });
+
     $('#send-msg').submit(function(){
         console.log(data.user_info.role);
 
