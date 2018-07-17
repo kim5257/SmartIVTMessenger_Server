@@ -14,7 +14,7 @@ div(class='container-fluid fixed-top bg-dark')
     div(class='collapse', id='roomToggleMenu')
         div(class='bg-dark p-2 text-white mb-4')
             p 대화 상대
-            ul(class='list-group room-user-list-text', style='max-height: 240px; overflow: scroll;')
+            ul(class='list-group room-user-list-text', style='max-height: 240px; overflow: auto;')
                 - var inviteAddr = '/room/' + data.room_info.room_num + '/invite';
                 - if (data.user_info.role === 'mgr')
                     a(href=inviteAddr class='list-group-item text-dark')
