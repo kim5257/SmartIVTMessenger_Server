@@ -37,12 +37,12 @@ $(function (){
                 //"</a>" +
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
-                "<h6 class=\"mt-0\">" + fromName + "  <small>(" + fromEmail + ")</small></h6>" +
+                "<h8 class=\"mt-0\"><strong>" + fromName + "  <small>(" + fromEmail + ")</small></strong></h8>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
+                "<small class=\"chat-msg-box-time\">" + time + "</small>" +
                 "</div>" +
-                "<small>&nbsp&nbsp" + time + "</small>" +
                 "</div>" +
                 "</li>";
         }
@@ -50,9 +50,9 @@ $(function (){
             return "<li class=\"media chat-msg-item-owner align-bottom\"" + id + ">" +
                 "<div class=\"media-body align-bottom\">" +
                 "<div class=\"m-1\" style=\"float: right;\">" +
-                "<small class=\"align-bottom\" >" + time + "&nbsp&nbsp</small>" +
                 "<div class=\"chat-msg-box-myself align-bottom\">" +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
+                "<small class=\"chat-msg-box-time-self\">" + time + "</small>" +
                 "</div>" +
                 "</div>" +
                 "</div>" +
