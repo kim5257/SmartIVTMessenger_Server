@@ -6,44 +6,60 @@ $(function (){
         return date;
     }
 
-    function makeMsgForm (owner, fromName, val, msgNo, timestamp)
-    {
-        var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
-
+    function makeLocalTime (timestamp) {
         // 시간대 변환
         var utcDate = new Date(timestamp);
         var localDate = cvtUTC2Local(utcDate);
         var dateString = moment(localDate).format('YYYY-MM-DD HH:mm');
 
+        return dateString;
+    }
+
+    function makeSepForm (date) {
+        return "<li class=\"media chat-msg-item\">" +
+            "<div class=\"media-body\">" +
+            "<div class=\"text-center\"><b>" +
+            date +
+            "</b></div>" +
+            "</div>" +
+            "</li>";
+    }
+
+    function makeMsgForm (owner, fromId, fromEmail, fromName, val, msgNo, timestamp) {
+        var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
+
+        var time = timestamp.slice(11,16);
+
         if ( owner == false ) {
             return "<li class=\"media chat-msg-item\"" + id + ">" +
+                //"<a href='/'>" +
                 "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +
+                //"</a>" +
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
-                "<h6 class=\"mt-0\">" + fromName + "</h6>" +
-                "<small>" + dateString + "</small>" +
+                "<h6 class=\"mt-0\">" + fromName + "  <small>(" + fromEmail + ")</small></h6>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
                 "</div>" +
+                "<small>&nbsp&nbsp" + time + "</small>" +
                 "</div>" +
                 "</li>";
         }
         else {
-            return "<li class=\"media chat-msg-item-owner\"" + id + ">" +
-                "<div class=\"media-body\">" +
-                "<div class=\"d-flex justify-content-between\">" +
-                "<p></p>" +
-                "<small>" + dateString + "</small>" +
-                "</div>" +
-                "<div style=\"justify-content: flex-end;display: flex;\">" +
-                "<div class=\"chat-msg-box-myself\">" +
+            return "<li class=\"media chat-msg-item-owner align-bottom\"" + id + ">" +
+                "<div class=\"media-body align-bottom\">" +
+                "<div class=\"m-1\" style=\"float: right;\">" +
+                "<small class=\"align-bottom\" >" + time + "&nbsp&nbsp</small>" +
+                "<div class=\"chat-msg-box-myself align-bottom\">" +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
                 "</div>" +
                 "</div>" +
                 "</div>" +
                 "</li>";
         }
+
+        return ret;
     }
 
     var sock = io();
@@ -78,18 +94,34 @@ $(function (){
         window.location.href = "/login";
     });
 
+    var firstDate = null;
+    var lastestDate = null;
+
     sock.on('chat_msg', function(msg){
         console.log(JSON.stringify(msg));
         msg.val = msg.val.replace(/\n/g, '<br>');
 
         //var timeString = msg.timestamp.substring(0, msg.timestamp.length-3);
 
+        var localTime = makeLocalTime(msg.timestamp);
+        var date = localTime.slice(0, 10);
+
+        if ( lastestDate != null )
+        {
+            if ( lastestDate != date )
+            {
+                // 날짜가 다르면 구분자 추가
+                $('#msg_list').append(makeSepForm(date));
+            }
+        }
+        lastestDate = date;
+
         if ( data.user_info['user_id'] != msg.from ) {
-            $('#msg_list').append(makeMsgForm(false, msg.from_name, msg.val, null, msg.timestamp));
+            $('#msg_list').append(makeMsgForm(false, msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
             window.scrollTo(0, document.body.scrollHeight);
         }
         else {
-            $('#msg_list').append(makeMsgForm(true, msg.from_name, msg.val, null, msg.timestamp));
+            $('#msg_list').append(makeMsgForm(true, msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
             window.scrollTo(0, document.body.scrollHeight);
         }
     });
@@ -100,17 +132,37 @@ $(function (){
         if ( res.result==='success' && res.messages.length != 0 )
         {
             var extraMsgForm = '';
+
             res.messages.forEach((item) => {
                 //var timeString = item.timestamp.substring(0, item.timestamp.length-3);
-
                 item.message = item.message.replace(/\n/g, '<br>');
 
+                var localTime = makeLocalTime(item.timestamp);
+                var date = localTime.slice(0, 10);
+
+                // 최초 불러오는거면 최근 날짜 저장
+                if ( lastestDate == null )
+                {
+                    lastestDate = date;
+                }
+
+                if ( firstDate != null )
+                {
+                    if ( firstDate != date )
+                    {
+                        // 날짜가 다르면 구분자 추가
+                        extraMsgForm = makeSepForm(date) + extraMsgForm;
+                    }
+                }
+                firstDate = date;
+
+
                 if ( data.user_info['user_id'] != item['from'] ){
-                    extraMsgForm = makeMsgForm(false, item.from_name, item.message, item['msg_no'], item.timestamp) + extraMsgForm;
+                    extraMsgForm = makeMsgForm ( false, item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString));
                 }
                 else {
-                    extraMsgForm = makeMsgForm(true, item.from_name, item.message, item['msg_no'], item.timestamp) + extraMsgForm;
+                    extraMsgForm = makeMsgForm(true, item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString));
                 }
             });
@@ -165,6 +217,7 @@ $(function (){
                 pack: {
                     from: data.user_info['user_id'],
                     from_name: data.user_info['user_name'],
+                    from_email: data.user_info['email'],
                     to: (data.user_info['role'] === 'mgr') ? ('all') : ('mgr'),
                     val: $('#msg').val()
                 }

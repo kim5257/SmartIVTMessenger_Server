@@ -520,7 +520,7 @@ function readMsg (roomNum, from, to, limit, offset, callback) {
     toCondition += ')';
 
     var query =
-        'SELECT `msg_no`, `from`, `user_name` as `from_name`, `to`, `message`, `timestamp` FROM\n' +
+        'SELECT `msg_no`, `from`, `email`, `user_name` as `from_name`, `to`, `message`, `timestamp` FROM\n' +
         '    (SELECT `msg_no`, `from`, `to`, `message`, `timestamp` FROM chat_server.messages\n' +
         '    WHERE room_num=:roomNum' + startOffset + notFirstTry + toCondition + ') as msg_list\n' +
         'LEFT JOIN chat_server.users ON msg_list.from=users.user_id\n' +

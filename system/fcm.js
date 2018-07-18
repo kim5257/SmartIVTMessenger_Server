@@ -7,12 +7,13 @@ var fcmData = jsonfile.readFileSync(path.join(__dirname, '../data', 'fcm.json'))
 var FCM = require('fcm-push');
 var fcm = new FCM(fcmData['server_key']);
 
-function sendMessage_ (tokens, roomName, msg) {
+function sendMessage_ (tokens, roomName, name, msg) {
     var pack = {
         registration_ids: tokens,
+        priority: 'high',
         notification: {
             title: roomName,
-            body: msg,
+            body: name + ': ' + msg,
             icon: 'ic_stat_notification',
             sound: 'default',
         }
@@ -60,7 +61,7 @@ function sendMessage (msg) {
                 // 방 전체 사용자의 토큰 가져오기 (본인 빼고)
                 dbctrl.getTokenByRoomId(msg.room_num, msg.pack.from, (result2) => {
                     if (result2.result === 'success') {
-                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.val);
+                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.from_name, msg.pack.val);
                     }
                 });
             }
@@ -68,7 +69,7 @@ function sendMessage (msg) {
                 // 상담사 토큰 가져오기 (본인 빼고)
                 dbctrl.getTokenByRoomIdOnlyMgr(msg.room_num, msg.pack.from, (result2) => {
                     if (result2.result === 'success') {
-                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.val);
+                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.from_name, msg.pack.val);
                     }
                 });
             }
@@ -76,7 +77,7 @@ function sendMessage (msg) {
                 // 한 사용자의 토큰 가져오기
                 dbctrl.getTokenByUserId(msg.pack.to, (result2) => {
                     if (result2.result === 'success') {
-                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.val);
+                        sendMessage_(result2.tokenList, result.roomInfo['room_name'], msg.pack.from_name, msg.pack.val);
                     }
                 })
             }
