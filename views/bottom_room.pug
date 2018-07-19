@@ -1,10 +1,12 @@
 div(class='fixed-bottom')
     div(class='d-flex navbar-dark bg-dark')
         form(id='send-msg', action="", class='col-12 p-1')
-            div(class='input-group')
+            div(class='input-group', id='input-form')
                 //div(class='input-group-prepend')
                     button(class='btn btn-outline-secondary', type='button')
                         span(class='fas fa-plus')
+                //div(class='ml-1 mr-2 align-self-center', id='whisper-target-block')
+                    button(class='btn btn-secondary btn-sm', id='whisper-target', value='kim5257@naver.com' type='button') 김재구:
                 textarea(id='msg', autocomplete='off', type='text', class='form-control' rows='1')
                 div(class='input-group-append')
                     button(class='btn btn-outline-secondary', type='submit') 전송

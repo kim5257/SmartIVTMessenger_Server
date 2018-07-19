@@ -25,16 +25,16 @@ $(function (){
             "</li>";
     }
 
-    function makeMsgForm (owner, fromId, fromEmail, fromName, val, msgNo, timestamp) {
+    function makeMsgForm (owner, role, fromId, fromEmail, fromName, val, msgNo, timestamp) {
         var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
 
         var time = timestamp.slice(11,16);
 
         if ( owner == false ) {
             return "<li class=\"media chat-msg-item\"" + id + ">" +
-                //"<a href='/'>" +
+                ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '">'):('')) +
                 "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +
-                //"</a>" +
+                ((role==='mgr')?('</div>'):('')) +
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
                 "<h8 class=\"mt-0\"><strong>" + fromName + "  <small>(" + fromEmail + ")</small></strong></h8>" +
@@ -60,6 +60,34 @@ $(function (){
         }
 
         return ret;
+    }
+
+    function makeWhisperForm () {
+        $(".whisper-select").click(function() {
+            console.log('click: ' + $(this).attr('value'));
+
+            if ( $('#whisper-target-block').length ) {
+                $('#whisper-target').attr('value', $(this).attr('value'));
+                $('#whisper-target').attr('name', $(this).attr('name'));
+                $('#whisper-target').text($(this).attr('name') + ': ');
+            }
+            else {
+                // value로 하단에 대상 표시
+                var tags =
+                    '<div class="ml-1 mr-2 align-self-center" id="whisper-target-block">' +
+                    '<button class="btn btn-secondary btn-sm" id="whisper-target" value="' + $(this).attr('value') + '" name="' + $(this).attr('name') + '">' +
+                    $(this).attr('name') + ': ' +
+                    '</button>' +
+                    '</div>';
+
+                $('#input-form').prepend(tags);
+
+                $('#whisper-target').click(function() {
+                    $('#whisper-target-block').remove();
+                    console.log('click: ' + $('#whisper-target').val());
+                });
+            }
+        });
     }
 
     var sock = io();
@@ -117,11 +145,13 @@ $(function (){
         lastestDate = date;
 
         if ( data.user_info['user_id'] != msg.from ) {
-            $('#msg_list').append(makeMsgForm(false, msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+            $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
             window.scrollTo(0, document.body.scrollHeight);
+
+            makeWhisperForm();
         }
         else {
-            $('#msg_list').append(makeMsgForm(true, msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+            $('#msg_list').append(makeMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
             window.scrollTo(0, document.body.scrollHeight);
         }
     });
@@ -158,11 +188,11 @@ $(function (){
 
 
                 if ( data.user_info['user_id'] != item['from'] ){
-                    extraMsgForm = makeMsgForm ( false, item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    extraMsgForm = makeMsgForm ( false, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString));
                 }
                 else {
-                    extraMsgForm = makeMsgForm(true, item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    extraMsgForm = makeMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     //$('#msg_list').prepend(makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString));
                 }
             });
@@ -183,6 +213,8 @@ $(function (){
             pktReqLog.offset = res.messages[res.messages.length-1]['msg_no'];
 
             console.log('Height: ' + document.body.scrollHeight);
+
+            makeWhisperForm();
         }
     });
 
@@ -221,6 +253,12 @@ $(function (){
                     to: (data.user_info['role'] === 'mgr') ? ('all') : ('mgr'),
                     val: $('#msg').val()
                 }
+            }
+
+            if ( $('#whisper-target').length ) {
+                msg.pack.to = $('#whisper-target').attr('value');
+
+                $('#whisper-target-block').remove();
             }
 
             sock.emit('chat_msg', msg);
