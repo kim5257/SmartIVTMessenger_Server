@@ -22,7 +22,33 @@ router.get('/', function(req, res, next) {
     res.render('register', { title: '사용자 등록', data: req.user });
 });
 
-router.post('/', function(req, res) {
+router.post('/', function(req, res, next) {
+
+    var pass = false;
+
+    if ( req.body['user_name'] != null )
+    {
+        var trimName = req.body['user_name'].trim();
+
+        // 걍 빈칸이거나, 공백으로 이름을 시도할 경우 확인
+        if ( trimName != '' )
+        {
+            pass = true;
+        }
+    }
+
+
+    if ( pass ) {
+        next ();
+    }
+    else {
+        var data = req.user;
+        data['result'] = 'error';
+        data['msg'] = '사용자 이름을 올바르게 입력하세요.';
+
+        res.render('register', {title: '사용자 등록', data: data});
+    }
+}, function (req, res) {
     console.log('register: ' + JSON.stringify(req.body));
 
     // DB에 내용 등록

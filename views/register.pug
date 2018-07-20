@@ -6,6 +6,10 @@ html
         div(class='container', style='max-width:520px;')
             form(action='/register', method='post')
                 div(class='row m-4 justify-content-center')
+                    - if ( data['result'] === 'error' )
+                        div(class='col-sm-12 alert alert-warning')
+                            buttom(type='button', class='close', data-dismiss='alert') &times;
+                            p(class='m-0') #{data['msg']}
                     div(class='col-sm-12 mt-5 mb-5')
                         img(src='/images/logo.png' class='mx-auto d-block img-fluid' alt='app logo')
                     div(class='col-sm-12 mt-2 mb-2')

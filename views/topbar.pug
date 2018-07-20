@@ -17,7 +17,8 @@ div(class='pos-f-t fixed-top')
                 - else
                     span(class='text-white font-weight-bold profile-text') 회원
                     #{data.user_info.role}
-                span(class='text-white font-weight-bold profile-text profile-name') #{data.user_info.user_name} (#{data.user_info.email})
+                - var identifier = (data.user_info.email==null)?(data.user_info.user_id):(data.user_info.email);
+                span(class='text-white font-weight-bold profile-text profile-name') #{data.user_info.user_name} (#{identifier})
                 a(href='/logout')
                     span(class='text-white profile-text') 로그아웃
 
