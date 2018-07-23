@@ -92,7 +92,7 @@ function updateUser (userId, profileImg, callback) {
 }
 
 function getUserInfo (id, callback) {
-    var query = 'SELECT user_id, user_name, role, profile_img FROM chat_server.users ' +
+    var query = 'SELECT user_id, user_name, email, role, profile_img FROM chat_server.users ' +
         'WHERE user_id=:id';
 
     var queryFmt = dbClient.prepare(query);
@@ -480,28 +480,34 @@ function writeMsg (msg, callback)
 
     var query =
         'INSERT INTO chat_server.messages' +
-        '(`room_num`, `from`, `to`, `message`, `timestamp`) ' +
-        'VALUES(:roomNum, :from, :to, :val, :timestamp)';
+        '(`room_num`, `from`, `to`, `type`, `message`, `timestamp`) ' +
+        'VALUES(:roomNum, :from, :to, :type, :val, :timestamp)';
 
     var queryFmt = dbClient.prepare(query);
     var queryArgs = {
         roomNum: msg['room_num'],
         from: msg.pack['from'],
         to: msg.pack['to'],
+        type: (msg.pack['type']!=null)?(msg.pack['type']):('text'),
         val: msg.pack['val'],
         timestamp: msg.pack['timestamp']
     };
 
+    console.log(queryFmt(queryArgs));
+
     dbClient.query(queryFmt(queryArgs)).on('end', function (){
         callback({result: 'success'});
+    }).on('error', function (error) {
+        console.log('error: ' + JSON.stringify(error));
+        callback({result: 'failed', msg: error});
     });
 }
 
 function readMsg (roomNum, from, to, limit, offset, callback) {
 
     /*
-    SELECT `msg_no`, `from`, `user_name` as `from_name`, `to`, `message`, `timestamp` FROM
-        (SELECT `msg_no`, `from`, `to`, `message`, `timestamp`
+    SELECT `msg_no`, `from`, `user_name` as `from_name`, `to`, `type`, `message`, `timestamp` FROM
+        (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp`
         FROM chat_server.messages
         WHERE room_num='1529241814317' and (`from`='naver-26042906'  or `to`='all' or `to`='naver-26042906')) as msg_list
     LEFT JOIN chat_server.users ON msg_list.from=users.user_id
@@ -520,8 +526,8 @@ function readMsg (roomNum, from, to, limit, offset, callback) {
     toCondition += ')';
 
     var query =
-        'SELECT `msg_no`, `from`, `email`, `user_name` as `from_name`, `to`, `message`, `timestamp` FROM\n' +
-        '    (SELECT `msg_no`, `from`, `to`, `message`, `timestamp` FROM chat_server.messages\n' +
+        'SELECT `msg_no`, `from`, `email`, `user_name` as `from_name`, `to`, `type`, `message`, `timestamp` FROM\n' +
+        '    (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp` FROM chat_server.messages\n' +
         '    WHERE room_num=:roomNum' + startOffset + notFirstTry + toCondition + ') as msg_list\n' +
         'LEFT JOIN chat_server.users ON msg_list.from=users.user_id\n' +
         'ORDER BY msg_no desc limit ' + limit;

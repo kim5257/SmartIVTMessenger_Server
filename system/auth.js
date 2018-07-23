@@ -18,6 +18,7 @@ exports.initAuth = function initAuth() {
             if ( result.result === 'success' )
             {
                 user['user_name'] = result.info['user_name'];
+                user['email'] = result.info['email'];
                 user['role'] = result.info['role'];
                 user['profile_img'] = result.info['profile_img'];
             }
@@ -36,6 +37,7 @@ exports.initAuth = function initAuth() {
             if ( result.result === 'success' )
             {
                 user['user_name'] = result.info['user_name'];
+                user['email'] = result.info['email'];
                 user['role'] = result.info['role'];
                 user['profile_img'] = result.info['profile_img'];
             }

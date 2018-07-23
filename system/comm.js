@@ -3,10 +3,12 @@ var util = require('./util');
 var passportSocketio = require('passport.socketio');
 var fcm = require('./fcm');
 
+var io = null;
+
 function initSock (server, cookieParser, sessionStore) {
     console.log('initSock');
 
-    var io = require('socket.io')(server);
+    io = require('socket.io')(server);
 
     io.set('authorization', passportSocketio.authorize({
         cokieParser: cookieParser,
@@ -84,8 +86,9 @@ function initSock (server, cookieParser, sessionStore) {
         });
 
         sock.on('req_msg_log', function(msg) {
-
+            console.log('res_msg_log: ' + JSON.stringify(msg));
             dbctrl.readMsg(msg['room_num'], msg['from'], msg['to'], msg['limit'], msg['offset'], function(result) {
+                console.log('res_msg_log: ' + JSON.stringify(result));
                 sock.emit('res_msg_log', result);
             });
 
@@ -154,6 +157,35 @@ function initSock (server, cookieParser, sessionStore) {
     });
 }
 
+function sendMsg (msg) {
+    var timestamp = util.getTimeString();
+
+    console.log('msg(' + timestamp + '): ' + JSON.stringify(msg));
+
+    msg.pack['timestamp'] = timestamp;
+
+    dbctrl.writeMsg(msg, function(result) {
+        if (result.result==='success') {
+            var to = msg.room_num + '/' + msg.pack.to;
+
+            io.to(to).emit('chat_msg', msg.pack);
+
+            // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
+            if ( msg.pack.to != 'all' ) {
+                var me = msg.room_num + '/' + msg.pack.from;
+                io.to(me).emit('chat_msg', msg.pack);
+            }
+
+            // FCM 전송
+            fcm.sendMessage(msg);
+        }
+        else
+        {
+            console.log('Error');
+        }
+    });
+}
+
 function onAuthSuccess (data, accept) {
     accept(null, true);
 }
@@ -165,3 +197,4 @@ function onAuthFail (data, msg, error, accept) {
 
 
 exports.initSock = initSock;
+exports.sendMsg = sendMsg;

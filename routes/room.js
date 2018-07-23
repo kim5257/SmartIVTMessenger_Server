@@ -6,6 +6,7 @@ var readChunk = require('read-chunk');
 var fileType = require('file-type');
 var path = require('path');
 var fs = require('fs');
+var comm = require('../system/comm')
 
 router.get('/:room_id', function(req, res, next) {
     if (req.isAuthenticated()) {
@@ -123,6 +124,7 @@ router.post('/:room_num/upload', function(req, res, next) {
     next();
 }, function(req, res) {
     var photos = [];
+    var fileNames = [];
     var form = new formidable.IncomingForm();
 
     console.log('TEST1');
@@ -132,7 +134,8 @@ router.post('/:room_num/upload', function(req, res, next) {
     form.multiples = true;
     form.uploadDir = path.join(__dirname, '..', 'tmp_uploads');
 
-    console.log('dir: ' + JSON.stringify(form.uploadDir));
+    console.log('data: ' + JSON.stringify(req.body));
+    console.log('form: ' + JSON.stringify(form));
 
     form.on('file', function(name, file) {
 
@@ -144,20 +147,18 @@ router.post('/:room_num/upload', function(req, res, next) {
             return true;
         }
 
-        var buffer = null;
-        var type = null;
-        var fileName = '';
-
-        buffer = readChunk.sync(file.path, 0, 262);
-        type = fileType(buffer);
+        var buffer = readChunk.sync(file.path, 0, 262);
+        var type = fileType(buffer);
 
         if ( type != null &&
-            (type.ext === 'png' || type.ext === 'jpg' || type.ext === 'jpeg' ) ) {
-            fileName = Date.now() + '_' + file.name;
+            (type.ext === 'png' || type.ext === 'jpg' || type.ext === 'jpeg' || type.ext === 'gif')) {
+            var fileName = Date.now() + '_' + file.name;
+            var newName = path.join('uploads', fileName);
 
+            fileNames.push('/' + newName);
 
-            console.log('file: ' + file.path + ', new: ' + path.join(__dirname, '..', 'uploads', fileName));
-            fs.rename(file.path, path.join(__dirname, '..', 'uploads', fileName), function(err) {
+            console.log('file: ' + file.path + ', new: ' + path.join(__dirname, '..', 'uploads', newName));
+            fs.rename(file.path, path.join(__dirname, '..', 'uploads', newName), function(err) {
                 if (err) {
                     console.log(JSON.stringify(err));
                 }
@@ -177,12 +178,18 @@ router.post('/:room_num/upload', function(req, res, next) {
                 message: 'Invalid file type'
             });
 
-            fs.unlink(file.path);
+            fs.unlink(file.path, function() {
+            });
         }
+    });
+
+    form.on('field', function(name, value) {
+        console.log('Field: ' + name + ', ' + value);
     });
 
     form.on('error', function(err) {
         console.log('Error occurred during processing: ' + err);
+        req.resume();
     });
 
     form.on('end', function() {
@@ -192,6 +199,20 @@ router.post('/:room_num/upload', function(req, res, next) {
     console.log('TEST2');
 
     form.parse(req, function(err, fields, files) {
+        console.log('result: ' + JSON.stringify(photos));
+        console.log('fields: ' + JSON.stringify(fields));
+        console.log('files: ' + JSON.stringify(files));
+
+        // socket.io로 이미지 데이터 전달
+        var msg = JSON.parse(fields['msg']);
+
+        msg.pack['val'] = fileNames[0];
+        msg.pack['obj_id'] = fields['time'];
+
+        console.log('msg: ' + JSON.stringify(msg));
+
+        comm.sendMsg(msg);
+
         res.status(200).json(photos);
     });
 });

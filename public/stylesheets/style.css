@@ -140,6 +140,11 @@ a {
     margin: 0px;
 }
 
+.chat-msg-img {
+    max-width: 100%;
+    max-height: 300px;
+}
+
 .userlist-icon {
     height: 32px !important;
     width: 32px !important;
