@@ -141,8 +141,8 @@ a {
 }
 
 .chat-msg-img {
-    max-width: 100%;
-    max-height: 300px;
+    max-width: 100% !important;
+    max-height: 300px !important;
 }
 
 .userlist-icon {

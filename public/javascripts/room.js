@@ -189,6 +189,13 @@ $(function (){
 
         //var timeString = msg.timestamp.substring(0, msg.timestamp.length-3);
 
+        // 자신이 보낸 귓말이면 건너뜀
+        console.log('from: ' + msg.from + ', to: ' + msg.to);
+        if ( (msg.from === data.user_info['user_id']) &&
+            (msg.to === 'wmgr') ) {
+            return;
+        }
+
         if ( msg['type'] === 'img' ) {
              // ID가 일치하는 폼이 이미 있으면 속성만 변경
             console.log('ID: ' + msg.obj_id);
@@ -412,7 +419,7 @@ $(function (){
             console.log('msg!: ' + JSON.stringify(msg));
 
             if ( $('.whisper-target').length ) {
-                msg.pack.to = $('.whisper-target').attr('value');
+                msg.pack.to = [$('.whisper-target').attr('value'), 'wmgr'];
 
                 $('.whisper-target-block').remove();
             }

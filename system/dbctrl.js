@@ -504,20 +504,13 @@ function writeMsg (msg, callback)
 }
 
 function readMsg (roomNum, from, to, limit, offset, callback) {
-
-    /*
-    SELECT `msg_no`, `from`, `user_name` as `from_name`, `to`, `type`, `message`, `timestamp` FROM
-        (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp`
-        FROM chat_server.messages
-        WHERE room_num='1529241814317' and (`from`='naver-26042906'  or `to`='all' or `to`='naver-26042906')) as msg_list
-    LEFT JOIN chat_server.users ON msg_list.from=users.user_id
-    ORDER BY msg_no desc limit 20;
-    */
     var startOffset = ' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id=\'' + from + '\' and room_num=\'' + roomNum + '\') < msg_no)';
 
     var notFirstTry = (offset==0)?(''):(' and (msg_no < ' + offset + ' )');
 
-    var toCondition = ' and (`from`=\'' + from + '\' ';
+    var toCondition =
+        ' and ((`from`=\'' + from + '\' and `to`!=\'wmgr\') or ' +
+        ' (`from`!=\'' + from + '\' and `to`=\'wmgr\')';
 
     to.forEach((item) => {
         toCondition += ' or `to`=\'' + item + '\'';

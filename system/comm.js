@@ -35,6 +35,9 @@ function initSock (server, cookieParser, sessionStore) {
             {
                 var mgr = msg.room_num + '/mgr';
                 sock.join(mgr);
+
+                mgr = msg.room_num + '/wmgr';
+                sock.join(mgr);
             }
         });
 
@@ -63,26 +66,56 @@ function initSock (server, cookieParser, sessionStore) {
 
             msg.pack['timestamp'] = timestamp;
 
-            dbctrl.writeMsg(msg, function(result) {
-                if (result.result==='success') {
-                    var to = msg.room_num + '/' + msg.pack.to;
-                    
-                    io.to(to).emit('chat_msg', msg.pack);
+            if ( Array.isArray(msg.pack['to']) === false ) {
+                dbctrl.writeMsg(msg, function (result) {
+                    if (result.result === 'success') {
+                        var to = msg.room_num + '/' + msg.pack.to;
 
-                    // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
-                    if ( msg.pack.to != 'all' ) {
-                        var me = msg.room_num + '/' + msg.pack.from;
-                        io.to(me).emit('chat_msg', msg.pack);
+                        io.to(to).emit('chat_msg', msg.pack);
+
+                        // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
+                        if (msg.pack.to != 'all' && msg.pack.to != 'wmgr') {
+                            var me = msg.room_num + '/' + msg.pack.from;
+                            io.to(me).emit('chat_msg', msg.pack);
+                        }
+
+                        // FCM 전송
+                        fcm.sendMessage(msg);
                     }
+                    else {
+                        console.log('Error');
+                    }
+                });
+            }
+            else {
+                msg.pack['to'].forEach(function(item) {
 
-                    // FCM 전송
-                    fcm.sendMessage(msg);
-                }
-                else
-                {
-                    console.log('Error');
-                }
-            });
+                    var newMsg = JSON.parse(JSON.stringify(msg));
+
+                    newMsg.pack['to'] = item;
+
+                    console.log('to2: ' + item);
+                    dbctrl.writeMsg(newMsg, function (result) {
+                        if (result.result === 'success') {
+                            var to = newMsg.room_num + '/' + newMsg.pack.to;
+
+                            io.to(to).emit('chat_msg', newMsg.pack);
+
+                            // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
+                            if (newMsg.pack.to != 'all' && newMsg.pack.to != 'wmgr') {
+                                var me = newMsg.room_num + '/' + newMsg.pack.from;
+                                io.to(me).emit('chat_msg', newMsg.pack);
+                            }
+
+                            // FCM 전송
+                            fcm.sendMessage(newMsg);
+                        }
+                        else {
+                            console.log('Error');
+                        }
+                    });
+                });
+            }
         });
 
         sock.on('req_msg_log', function(msg) {
