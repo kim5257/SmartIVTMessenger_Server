@@ -25,12 +25,18 @@ $(function (){
             "</li>";
     }
 
-    function makeMsgForm (owner, role, fromId, fromEmail, fromName, val, msgNo, timestamp) {
+    function makeMsgForm (owner, role, fromId, fromEmail, fromName, to, toName, val, msgNo, timestamp) {
         var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
 
         var time = timestamp.slice(11,16);
 
         if ( owner == false ) {
+            var whisperTag = '';
+            if ( toName != null || to == 'wmgr' ) {
+                whisperTag =
+                    '<small class="chat-msg-box-time-self">' + fromName + '로부터:' + '</small>'
+            }
+
             return "<li class=\"media chat-msg-item\"" + id + ">" +
                 ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '">'):('')) +
                 "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +
@@ -40,6 +46,7 @@ $(function (){
                 "<h8 class=\"mt-0\"><strong>" + fromName + "  <small>(" + fromEmail + ")</small></strong></h8>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
+                whisperTag +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
                 "<small class=\"chat-msg-box-time\">" + time + "</small>" +
                 "</div>" +
@@ -47,10 +54,17 @@ $(function (){
                 "</li>";
         }
         else {
+            var whisperTag = '';
+            if ( toName != null || to == 'wmgr' ) {
+                whisperTag =
+                    '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small>'
+            }
+
             return "<li class=\"media chat-msg-item-owner align-bottom\"" + id + ">" +
                 "<div class=\"media-body align-bottom\">" +
                 "<div class=\"m-1\" style=\"float: right;\">" +
                 "<div class=\"chat-msg-box-myself align-bottom\">" +
+                whisperTag +
                 "<p class=\"chat-msg-body\">" + val + "</p>" +
                 "<small class=\"chat-msg-box-time-self\">" + time + "</small>" +
                 "</div>" +
@@ -264,13 +278,13 @@ $(function (){
 
             console.log('text appended');
             if (data.user_info['user_id'] != msg.from) {
-                $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+                $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
                 window.scrollTo(0, document.body.scrollHeight);
 
                 makeWhisperForm();
             }
             else {
-                $('#msg_list').append(makeMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+                $('#msg_list').append(makeMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
                 window.scrollTo(0, document.body.scrollHeight);
             }
         }
@@ -310,21 +324,17 @@ $(function (){
                 if ( item['type'] === 'img' ) {
                     if (data.user_info['user_id'] != item['from']) {
                         extraMsgForm = makeImgMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
-                        //$('#msg_list').prepend(makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString));
                     }
                     else {
                         extraMsgForm = makeImgMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
-                        //$('#msg_list').prepend(makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString));
                     }
                 }
                 else {
                     if (data.user_info['user_id'] != item['from']) {
-                        extraMsgForm = makeMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
-                        //$('#msg_list').prepend(makeMsgForm(false, item.from_name, item.message, item['msg_no'], timeString));
+                        extraMsgForm = makeMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     }
                     else {
-                        extraMsgForm = makeMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
-                        //$('#msg_list').prepend(makeMsgForm(true, item.from_name, item.message, item['msg_no'], timeString));
+                        extraMsgForm = makeMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     }
                 }
             });
@@ -420,6 +430,7 @@ $(function (){
 
             if ( $('.whisper-target').length ) {
                 msg.pack.to = [$('.whisper-target').attr('value'), 'wmgr'];
+                msg.pack.to_name = $('.whisper-target').attr('name');
 
                 $('.whisper-target-block').remove();
             }
