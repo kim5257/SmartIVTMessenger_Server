@@ -18,10 +18,27 @@
     max-width: 100% !important;
 }
 
+.img-modal-down {
+    position: absolute;
+    top: 2rem;
+    right: 5rem;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.img-modal-down:hover,
+.img-modal-down:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 .img-modal-close {
     position: absolute;
-    top: 15px;
-    right: 35px;
+    top: 2rem;
+    right: 2rem;
     color: #f1f1f1;
     font-size: 40px;
     font-weight: bold;

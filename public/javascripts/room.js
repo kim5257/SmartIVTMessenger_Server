@@ -189,6 +189,7 @@ $(function (){
 
             $('#img-modal').css('display', 'block');
             $('#img-modal-content').attr('src', this.src);
+            $('#img-modal-down-link').attr('href', this.src);
         });
 
         $('.img-modal-close').click(function() {

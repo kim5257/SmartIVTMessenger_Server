@@ -9,6 +9,10 @@ html
         ul(class='chat-list' id='msg_list')
         // Modal
         div(id='img-modal', class='img-modal')
-            span(class='img-modal-close') &times;
+            a(id='img-modal-down-link' download)
+                span(class='img-modal-down')
+                    i(class='fas fa-file-download')
+            span(class='img-modal-close')
+                i(class='fas fa-times')
             img(class='img-modal-content' id='img-modal-content')
         include bottom_room.pug
