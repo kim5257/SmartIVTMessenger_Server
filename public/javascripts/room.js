@@ -92,7 +92,7 @@ $(function (){
             "<div class=\"m-1\" style=\"float: right;\">" +
             "<div class=\"chat-msg-box-myself align-bottom\">" +
             whisperTag + "<br>" +
-            "<img class=\"chat-msg-img\" src=\"" + fileUrl + "\" alt=\"Image\" id=\"" + imgId + "\">" +
+            "<img class=\"chat-msg-img img-modal-btn\" src=\"" + fileUrl + "\" alt=\"Image\" id=\"" + imgId + "\">" +
             "<div class=\"progress\" id=\"" + progressId + "\">" +
             "<div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"0\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%;\">" +
             "<span class=\"sr-only\"></span>" +
@@ -127,7 +127,7 @@ $(function (){
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
                 whisperTag + "<br>" +
-                "<img class=\"chat-msg-img\" src=\"" + val + "\" alt=\"Image\">" +
+                "<img class=\"chat-msg-img img-modal-btn\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time\">" + time + "</small>" +
                 "</div>" +
                 "</div>" +
@@ -145,7 +145,7 @@ $(function (){
                 "<div class=\"m-1\" style=\"float: right;\">" +
                 "<div class=\"chat-msg-box-myself align-bottom\">" +
                 whisperTag + "<br>" +
-                "<img class=\"chat-msg-img\" src=\"" + val + "\" alt=\"Image\">" +
+                "<img class=\"chat-msg-img img-modal-btn\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time-self\">" + time + "</small>" +
                 "</div>" +
                 "</div>" +
@@ -180,6 +180,19 @@ $(function (){
                     console.log('click: ' + $('.whisper-target').val());
                 });
             }
+        });
+    }
+
+    function makeImgModalForm () {
+        $('.img-modal-btn').click(function() {
+            console.log('click image');
+
+            $('#img-modal').css('display', 'block');
+            $('#img-modal-content').attr('src', this.src);
+        });
+
+        $('.img-modal-close').click(function() {
+            $('#img-modal').css('display', 'none');
         });
     }
 
@@ -271,6 +284,8 @@ $(function (){
                         window.scrollTo(0, document.body.scrollHeight);
                     });
                 }
+
+                makeImgModalForm();
             }
             else {
                 var time = localTime.slice(11,16);
@@ -385,6 +400,7 @@ $(function (){
                 }
             });
 
+            console.log('imgs: ' + imgs.length + ', ' + preImgCnt);
             if (imgs.length === preImgCnt) {
                 if (pktReqLog.offset == 0) {
                     window.scrollTo(0, document.body.scrollHeight);
@@ -400,6 +416,7 @@ $(function (){
             }
 
             makeWhisperForm();
+            makeImgModalForm();
         }
     });
 
@@ -567,6 +584,8 @@ $(function (){
         $('#input-file').val('');
         $('#send-img').hide();
         $('#send-msg').show();
+
+        makeImgModalForm();
     });
 
     $(window).scroll(function() {
