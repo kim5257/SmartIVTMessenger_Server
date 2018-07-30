@@ -84,14 +84,14 @@ $(function (){
         var whisperTag = '';
         if ( toName != null || to == 'wmgr' ) {
             whisperTag =
-                '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small>'
+                '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small><br>'
         }
 
         return "<li class=\"media chat-msg-item-owner align-bottom\" id=\"" + msgBody + "\">" +
             "<div class=\"media-body align-bottom\">" +
             "<div class=\"m-1\" style=\"float: right;\">" +
             "<div class=\"chat-msg-box-myself align-bottom\">" +
-            whisperTag + "<br>" +
+            whisperTag +
             "<img class=\"chat-msg-img img-modal-btn\" src=\"" + fileUrl + "\" alt=\"Image\" id=\"" + imgId + "\">" +
             "<div class=\"progress\" id=\"" + progressId + "\">" +
             "<div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"0\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%;\">" +
@@ -114,7 +114,7 @@ $(function (){
             var whisperTag = '';
             if ( toName != null || to == 'wmgr' ) {
                 whisperTag =
-                    '<small class="chat-msg-box-time-self">' + fromName + '로부터:' + '</small>'
+                    '<small class="chat-msg-box-time-self">' + fromName + '로부터:' + '</small><br>'
             }
 
             return "<li class=\"media chat-msg-item\"" + id + ">" +
@@ -126,7 +126,7 @@ $(function (){
                 "<h8 class=\"mt-0\"><strong>" + fromName + "  <small>(" + fromEmail + ")</small></strong></h8>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
-                whisperTag + "<br>" +
+                whisperTag +
                 "<img class=\"chat-msg-img img-modal-btn\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time\">" + time + "</small>" +
                 "</div>" +
@@ -137,14 +137,14 @@ $(function (){
             var whisperTag = '';
             if ( toName != null || to == 'wmgr' ) {
                 whisperTag =
-                    '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small>'
+                    '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small><br>'
             }
 
             return "<li class=\"media chat-msg-item-owner align-bottom\"" + id + ">" +
                 "<div class=\"media-body align-bottom\">" +
                 "<div class=\"m-1\" style=\"float: right;\">" +
                 "<div class=\"chat-msg-box-myself align-bottom\">" +
-                whisperTag + "<br>" +
+                whisperTag +
                 "<img class=\"chat-msg-img img-modal-btn\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time-self\">" + time + "</small>" +
                 "</div>" +
