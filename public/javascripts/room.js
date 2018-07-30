@@ -74,17 +74,24 @@ $(function (){
         }
     }
 
-    function makeImgMsgFormProto (time, file) {
+    function makeImgMsgFormProto (time, file, to, toName) {
         var msgBody = 'msg-body-' + time;
         var imgId = 'img-body-' + time;
         var timeId = 'img-time-' + time;
         var progressId = 'img-progress-' + time;
         var fileUrl = URL.createObjectURL(file);
 
+        var whisperTag = '';
+        if ( toName != null || to == 'wmgr' ) {
+            whisperTag =
+                '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small>'
+        }
+
         return "<li class=\"media chat-msg-item-owner align-bottom\" id=\"" + msgBody + "\">" +
             "<div class=\"media-body align-bottom\">" +
             "<div class=\"m-1\" style=\"float: right;\">" +
             "<div class=\"chat-msg-box-myself align-bottom\">" +
+            whisperTag + "<br>" +
             "<img class=\"chat-msg-img\" src=\"" + fileUrl + "\" alt=\"Image\" id=\"" + imgId + "\">" +
             "<div class=\"progress\" id=\"" + progressId + "\">" +
             "<div class=\"progress-bar progress-bar-striped active\" role=\"progressbar\" aria-valuenow=\"0\" aria-valuemin=\"0\" aria-valuemax=\"100\" style=\"width: 0%;\">" +
@@ -98,12 +105,18 @@ $(function (){
             "</li>";
     }
 
-    function makeImgMsgForm (owner, role, fromId, fromEmail, fromName, val, msgNo, timestamp) {
+    function makeImgMsgForm (owner, role, fromId, fromEmail, fromName, to, toName, val, msgNo, timestamp) {
         var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
 
         var time = timestamp.slice(11,16);
 
         if ( owner == false ) {
+            var whisperTag = '';
+            if ( toName != null || to == 'wmgr' ) {
+                whisperTag =
+                    '<small class="chat-msg-box-time-self">' + fromName + '로부터:' + '</small>'
+            }
+
             return "<li class=\"media chat-msg-item\"" + id + ">" +
                 ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '">'):('')) +
                 "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +
@@ -113,6 +126,7 @@ $(function (){
                 "<h8 class=\"mt-0\"><strong>" + fromName + "  <small>(" + fromEmail + ")</small></strong></h8>" +
                 "</div>" +
                 "<div class=\"chat-msg-box\">" +
+                whisperTag + "<br>" +
                 "<img class=\"chat-msg-img\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time\">" + time + "</small>" +
                 "</div>" +
@@ -120,10 +134,17 @@ $(function (){
                 "</li>";
         }
         else {
+            var whisperTag = '';
+            if ( toName != null || to == 'wmgr' ) {
+                whisperTag =
+                    '<small class="chat-msg-box-time-self">' + toName + '에게:' + '</small>'
+            }
+
             return "<li class=\"media chat-msg-item-owner align-bottom\"" + id + ">" +
                 "<div class=\"media-body align-bottom\">" +
                 "<div class=\"m-1\" style=\"float: right;\">" +
                 "<div class=\"chat-msg-box-myself align-bottom\">" +
+                whisperTag + "<br>" +
                 "<img class=\"chat-msg-img\" src=\"" + val + "\" alt=\"Image\">" +
                 "<br><small class=\"chat-msg-box-time-self\">" + time + "</small>" +
                 "</div>" +
@@ -235,7 +256,7 @@ $(function (){
 
             if ( $(imgId).length === 0 ) {
                 if (data.user_info['user_id'] != msg.from) {
-                    var appenedElement = $('#msg_list').append(makeImgMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+                    var appenedElement = $('#msg_list').append(makeImgMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
 
                     appenedElement.find('img').on('load', function() {
                         window.scrollTo(0, document.body.scrollHeight);
@@ -244,7 +265,7 @@ $(function (){
                     makeWhisperForm();
                 }
                 else {
-                    var appenedElement = $('#msg_list').append(makeImgMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.val, null, localTime));
+                    var appenedElement = $('#msg_list').append(makeImgMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
 
                     appenedElement.find('img').on('load', function() {
                         window.scrollTo(0, document.body.scrollHeight);
@@ -323,10 +344,10 @@ $(function (){
 
                 if ( item['type'] === 'img' ) {
                     if (data.user_info['user_id'] != item['from']) {
-                        extraMsgForm = makeImgMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                        extraMsgForm = makeImgMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     }
                     else {
-                        extraMsgForm = makeImgMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                        extraMsgForm = makeImgMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
                     }
                 }
                 else {
@@ -527,6 +548,7 @@ $(function (){
 
         if ( $('.whisper-target').length ) {
             msg.pack.to = $('.whisper-target').attr('value');
+            msg.pack.to_name = $('.whisper-target').attr('name');
 
             $('.whisper-target-block').remove();
         }
@@ -534,7 +556,7 @@ $(function (){
         formData.append('time', time);
         formData.append('msg', JSON.stringify(msg));
 
-        $('#msg_list').append(makeImgMsgFormProto(time, file)).find('img').on('load', function() {
+        $('#msg_list').append(makeImgMsgFormProto(time, file, msg.pack.to, msg.pack.to_name)).find('img').on('load', function() {
             window.scrollTo(0, document.body.scrollHeight);
         });
 
