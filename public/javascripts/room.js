@@ -270,11 +270,25 @@ $(function (){
 
             if ( $(imgId).length === 0 ) {
                 if (data.user_info['user_id'] != msg.from) {
+
+                    var isBottom = false;
+
+                    // 스크롤이 맨 아래였는지 확인
+                    if ( (window.pageYOffset + 512) >= document.body.scrollHeight ) {
+                        isBottom = true;
+                    }
+
                     var appenedElement = $('#msg_list').append(makeImgMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
 
-                    appenedElement.find('img').on('load', function() {
-                        window.scrollTo(0, document.body.scrollHeight);
-                    });
+                    // 스크롤이 맨 아래에 있었을 때만 적용
+                    if ( isBottom == true ) {
+                        appenedElement.find('img').on('load', function () {
+                            window.scrollTo(0, document.body.scrollHeight);
+                        });
+                    }
+                    else {
+                        //TODO: 추가된 메시지 내용을 보여줘보자
+                    }
 
                     makeWhisperForm();
                 }
@@ -315,8 +329,23 @@ $(function (){
 
             console.log('text appended');
             if (data.user_info['user_id'] != msg.from) {
+
+                var isBottom = false;
+
+                // 스크롤이 맨 아래였는지 확인
+                if ( (window.pageYOffset + 512) >= document.body.scrollHeight ) {
+                    isBottom = true;
+                }
+
                 $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
-                window.scrollTo(0, document.body.scrollHeight);
+
+                // 스크롤이 맨 아래에 있었을 때만 적용
+                if ( isBottom == true ) {
+                    window.scrollTo(0, document.body.scrollHeight);
+                }
+                else {
+                    //TODO: 추가된 메시지 내용을 보여줘보자
+                }
 
                 makeWhisperForm();
             }
