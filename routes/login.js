@@ -90,4 +90,44 @@ router.post('/auth/google/callback', function(req, res, next) {
     res.json({result: 'success'});
 });
 
+
+router.get('/auth/kakao',
+    passport.authenticate('kakao', {
+        failureRedirect: '/login',
+        scope: ['profile', 'account_email']
+    })
+);
+
+router.get('/auth/kakao/callback',
+    passport.authenticate('kakao', {
+        failureRedirect: '/login',
+        scope: ['profile', 'account_email']
+    }),
+    function(req, res){
+
+        req['data'] = {};
+        req['data']['user_info'] = req.user;
+
+        res.render('auth/kakaocallback', { data: req['data'] });
+
+        //res.redirect('/');
+    }
+);
+
+router.post('/auth/kakao/callback', function(req, res, next) {
+    console.log('kakao callback: ' + req.body.fcm_token);
+
+    dbctrl.registerToken(req.body.user_id, req.body.fcm_token, (result) => {
+        if ( result.result === 'success' ) {
+            next ();
+        }
+        else {
+            res.json({result: 'failed'});
+        }
+    });
+}, function(req, res) {
+    res.json({result: 'success'});
+});
+
+
 module.exports = router;

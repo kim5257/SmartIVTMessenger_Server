@@ -1,6 +1,7 @@
 var passport = require('passport');
 var NaverStrategy = require('passport-naver').Strategy;
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
+var KakaoStrategy = require('passport-kakao').Strategy;
 var jsonfile = require('jsonfile');
 var path = require('path');
 var dbctrl = require('./dbctrl');
@@ -115,6 +116,46 @@ exports.initAuth = function initAuth() {
                     // 프로파일 이미지가 변경되었으면 업데이트
                     if ( user['profile_img'] != profile.photos[0].value ) {
                         dbctrl.updateUser (user.user_id, profile.photos[0].value, (result) => {
+                            // 아무것도 하지 않음.
+                        });
+                    }
+                }
+
+                done(null, user);
+            });
+        }
+    ));
+
+    var kakaoAuthSetting = jsonfile.readFileSync(path.join(__dirname, '../data', 'kakao_oauth_data.json'));
+
+    console.log(JSON.stringify(kakaoAuthSetting));
+
+    passport.use ( new KakaoStrategy(kakaoAuthSetting,
+        function(accessToken, refreshToken, profile, done) {
+            console.log('passReq on kakao: ' + JSON.stringify(profile));
+            var user_id = profile.provider + '-' + profile.id;
+
+            dbctrl.getUserInfo(user_id, (result) => {
+
+                var user = {
+                    user_id: user_id,
+                    user_name: profile.username,
+                    email: profile._json.kaccount_email
+                };
+
+                console.log(JSON.stringify(result));
+
+                if ( result.result === 'success' )
+                {
+                    user['user_name'] = result.info['user_name'];
+                    user['role'] = result.info['role'];
+                    user['profile_img'] = result.info['profile_img'];
+
+                    console.log('pre img: ' + user['profile_img'] + ', new img: ' + profile._json.profile_image);
+
+                    // 프로파일 이미지가 변경되었으면 업데이트
+                    if ( user['profile_img'] != profile._json.properties.thumbnail_image ) {
+                        dbctrl.updateUser (user.user_id, profile._json.properties.thumbnail_image, (result) => {
                             // 아무것도 하지 않음.
                         });
                     }
