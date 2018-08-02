@@ -39,7 +39,7 @@ $(function (){
 
             return "<li class=\"media chat-msg-item\"" + id + ">" +
                 ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '">'):('')) +
-                "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\"></i>" +
+                "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\" style=\"min-width: 28px;\"></i>" +
                 ((role==='mgr')?('</div>'):('')) +
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
@@ -404,6 +404,7 @@ $(function (){
             console.log('imgs: ' + imgs.length + ', ' + preImgCnt);
             if (imgs.length === preImgCnt) {
                 if (pktReqLog.offset == 0) {
+                    console.log('Height: ' + document.body.scrollHeight);
                     window.scrollTo(0, document.body.scrollHeight);
                 }
                 else {
