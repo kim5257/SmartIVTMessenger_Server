@@ -38,8 +38,8 @@ $(function (){
             }
 
             return "<li class=\"media chat-msg-item\"" + id + ">" +
-                ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '">'):('')) +
-                "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\" style=\"min-width: 28px;\"></i>" +
+                ((role==='mgr')?('<div class="whisper-select" value="' + fromId + '" name="' + fromName + '" style="width: 44px !important;">'):('')) +
+                "<i class=\"align-self-start mr-3 fa fa-user fa-2x\" data-fa-transform=\"flip-h\" style=\"width: 44px !important;\"></i>" +
                 ((role==='mgr')?('</div>'):('')) +
                 "<div class=\"media-body\">" +
                 "<div class=\"d-flex justify-content-between\">" +
@@ -274,7 +274,7 @@ $(function (){
                     var isBottom = false;
 
                     // 스크롤이 맨 아래였는지 확인
-                    if ( (window.pageYOffset + 512) >= document.body.scrollHeight ) {
+                    if ( (window.pageYOffset + window.innerHeight) >= document.documentElement.scrollHeight ) {
                         isBottom = true;
                     }
 
@@ -333,7 +333,10 @@ $(function (){
                 var isBottom = false;
 
                 // 스크롤이 맨 아래였는지 확인
-                if ( (window.pageYOffset + 512) >= document.body.scrollHeight ) {
+                console.log('pageYOffset: ' + window.pageYOffset + ', ' + document.body.scrollHeight);
+                console.log('innerHeight: ' + window.innerHeight + ', ' + window.outerHeight);
+                console.log('clientHeight: ' + document.documentElement.scrollHeight);
+                if ( (window.pageYOffset + window.innerHeight) >= document.documentElement.scrollHeight ) {
                     isBottom = true;
                 }
 
