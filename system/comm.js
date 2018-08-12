@@ -2,6 +2,7 @@ var dbctrl = require('./dbctrl');
 var util = require('./util');
 var passportSocketio = require('passport.socketio');
 var fcm = require('./fcm');
+var commRoom = require('./comm_room');
 
 var io = null;
 
@@ -9,6 +10,8 @@ function initSock (server, cookieParser, sessionStore) {
     console.log('initSock');
 
     io = require('socket.io')(server);
+
+    commRoom.initSocket(io);
 
     io.set('authorization', passportSocketio.authorize({
         cokieParser: cookieParser,
@@ -21,25 +24,7 @@ function initSock (server, cookieParser, sessionStore) {
     io.on('connection', function(sock){
         console.log('New user connected');
 
-        sock.on('join_room', function(msg) {
-            console.log('msg: ' + JSON.stringify(msg));
-
-            var all = msg.room_num + '/all';
-            var user = msg.room_num + '/' + sock.request.user.user_id;
-
-            sock.join(all);
-            sock.join(user);
-
-            // 상담사일경우 mgr 타입도 수신
-            if ( sock.request.user.role === 'mgr' )
-            {
-                var mgr = msg.room_num + '/mgr';
-                sock.join(mgr);
-
-                mgr = msg.room_num + '/wmgr';
-                sock.join(mgr);
-            }
-        });
+        commRoom.initRoomHandler(sock);
 
         sock.on('join_userlist', function(msg) {
             console.log('msg: ' + JSON.stringify(msg));
@@ -57,74 +42,6 @@ function initSock (server, cookieParser, sessionStore) {
             console.log('join: ' + user);
 
             sock.join(user);
-        });
-
-        sock.on('chat_msg', function(msg){
-            var timestamp = util.getTimeString();
-
-            console.log('msg(' + timestamp + '): ' + JSON.stringify(msg));
-
-            msg.pack['timestamp'] = timestamp;
-
-            if ( Array.isArray(msg.pack['to']) === false ) {
-                dbctrl.writeMsg(msg, function (result) {
-                    if (result.result === 'success') {
-                        var to = msg.room_num + '/' + msg.pack.to;
-
-                        io.to(to).emit('chat_msg', msg.pack);
-
-                        // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
-                        if (msg.pack.to != 'all' && msg.pack.to != 'wmgr') {
-                            var me = msg.room_num + '/' + msg.pack.from;
-                            io.to(me).emit('chat_msg', msg.pack);
-                        }
-
-                        // FCM 전송
-                        fcm.sendMessage(msg);
-                    }
-                    else {
-                        console.log('Error');
-                    }
-                });
-            }
-            else {
-                msg.pack['to'].forEach(function(item) {
-
-                    var newMsg = JSON.parse(JSON.stringify(msg));
-
-                    newMsg.pack['to'] = item;
-
-                    console.log('to2: ' + item);
-                    dbctrl.writeMsg(newMsg, function (result) {
-                        if (result.result === 'success') {
-                            var to = newMsg.room_num + '/' + newMsg.pack.to;
-
-                            io.to(to).emit('chat_msg', newMsg.pack);
-
-                            // 만약 전체 전송이 아니라면 나 자신에게도 내용 전달
-                            if (newMsg.pack.to != 'all' && newMsg.pack.to != 'wmgr') {
-                                var me = newMsg.room_num + '/' + newMsg.pack.from;
-                                io.to(me).emit('chat_msg', newMsg.pack);
-                            }
-
-                            // FCM 전송
-                            fcm.sendMessage(newMsg);
-                        }
-                        else {
-                            console.log('Error');
-                        }
-                    });
-                });
-            }
-        });
-
-        sock.on('req_msg_log', function(msg) {
-            console.log('res_msg_log: ' + JSON.stringify(msg));
-            dbctrl.readMsg(msg['room_num'], msg['from'], msg['to'], msg['limit'], msg['offset'], function(result) {
-                console.log('res_msg_log: ' + JSON.stringify(result));
-                sock.emit('res_msg_log', result);
-            });
-
         });
 
         sock.on('req_except_user', function(msg) {
@@ -183,6 +100,14 @@ function initSock (server, cookieParser, sessionStore) {
                 });
             }
         });
+
+        sock.on('disconnect', (data) => {
+            console.log('sock disconnected: ' + JSON.stringify(data));
+
+            if ( sock['where'] === 'room' ) {
+                commRoom.deinitRoomHandler(sock);
+            }
+        })
     });
 
     io.on('disconnect', function() {

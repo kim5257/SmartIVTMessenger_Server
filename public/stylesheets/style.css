@@ -178,3 +178,10 @@ a {
 .room-user-list-item {
     width: 100%;
 }
+
+.room-read-msg-tag {
+    margin: 5px;
+    padding-left: 0px;
+    font-size: 10pt;
+    color: #303030;
+}

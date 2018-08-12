@@ -496,7 +496,7 @@ function writeMsg (msg, callback)
     console.log(queryFmt(queryArgs));
 
     dbClient.query(queryFmt(queryArgs)).on('end', function (){
-        callback({result: 'success'});
+        callback({result: 'success', lastMsgNo: dbClient.lastInsertId()});
     }).on('error', function (error) {
         console.log('error: ' + JSON.stringify(error));
         callback({result: 'failed', msg: error});
@@ -717,6 +717,67 @@ function showDatabases () {
     });
 }
 
+function getLastMsgNo (roomNum, userId, callback) {
+    let query =
+        'SELECT \n' +
+        '   (SELECT \n' +
+        '\t   IFNULL(\n' +
+        '\t\t   (SELECT last_msg_no FROM `chat_server`.`msg_no_map`\n' +
+        '\t\t   WHERE room_num=:roomNum and user_id=:userId),\n' +
+        '\t\t   (SELECT MAX(msg_no) FROM `chat_server`.`messages`\n' +
+        '\t\t   WHERE room_num=:roomNum))) as last_msg_no,\n' +
+        '    ((SELECT MAX(msg_no) FROM `chat_server`.`messages`\n' +
+        '\t\tWHERE room_num=:roomNum) - \n' +
+        '\t(SELECT \n' +
+        '\t\tIFNULL(\n' +
+        '\t\t\t(SELECT last_msg_no FROM `chat_server`.`msg_no_map`\n' +
+        '\t\t\tWHERE room_num=:roomNum and user_id=:userId),\n' +
+        '\t\t\t(SELECT MAX(msg_no) FROM `chat_server`.`messages`\n' +
+        '\t\t\tWHERE room_num=:roomNum)))) as non_read_msg_cnt;\t';
+
+    let queryFmt = dbClient.prepare(query);
+    let lastMsgNo = null;
+    let nonReadMsgCnt = null;
+
+    console.log('query: ' + queryFmt({roomNum: roomNum, userId: userId}));
+
+    dbClient.query(queryFmt({roomNum: roomNum, userId: userId})).on('result', function (result){
+        result.on('data', function (row){
+            lastMsgNo = row['last_msg_no'];
+            nonReadMsgCnt = row['non_read_msg_cnt'];
+        });
+    }).on('end', function (){
+        callback({result: 'success', lastMsgNo: lastMsgNo, nonReadMsgCnt: nonReadMsgCnt});
+    });
+}
+
+function setLastMsgNo (roomNum, userList, callback) {
+    let userListArray = '';
+
+    userList.forEach( (value, userId) => {
+        userListArray += "'" + userId + "',";
+    });
+
+    userListArray = userListArray.substr(0, userListArray.length-1);
+
+    console.log('userIdArray: ' + userListArray);
+
+    let query =
+        'UPDATE `chat_server`.`msg_no_map`\n' +
+        'SET last_msg_no=(\n' +
+        '    SELECT MAX(msg_no) FROM `chat_server`.`messages` WHERE room_num=:roomNum\n' +
+        ')\n' +
+        'WHERE room_num=:roomNum and user_id IN (' + userListArray + ');';
+    let queryFmt = dbClient.prepare(query);
+
+    dbClient.query(queryFmt({roomNum: roomNum})).on('end', function (){
+
+        if ( callback != null ) {
+            callback({result: 'success'});
+        }
+    });
+}
+
 exports.chkValidUser = chkValidUser;
 exports.registerUser = registerUser;
 exports.updateUser = updateUser;
@@ -742,5 +803,7 @@ exports.unregisterToken = unregisterToken;
 exports.getTokenByRoomId = getTokenByRoomId;
 exports.getTokenByRoomIdOnlyMgr = getTokenByRoomIdOnlyMgr;
 exports.getTokenByUserId = getTokenByUserId;
+exports.getLastMsgNo = getLastMsgNo;
+exports.setLastMsgNo = setLastMsgNo;
 
 exports.showDatabases = showDatabases;

@@ -25,6 +25,16 @@ $(function (){
             "</li>";
     }
 
+    function makeReadTagForm () {
+        return "<li class=\"media room-read-msg-tag\">" +
+            "<div class=\"media-body\">" +
+            "<div class=\"text-center\"><b>" +
+            "여기까지 읽었습니다." +
+            "<hr></gr></b></div>" +
+            "</div>" +
+            "</li>";
+    }
+
     function makeMsgForm (owner, role, fromId, fromEmail, fromName, to, toName, val, msgNo, timestamp) {
         var id = (msgNo==null)?(''):(' id="msgno_' + msgNo + '"');
 
@@ -278,7 +288,7 @@ $(function (){
                         isBottom = true;
                     }
 
-                    var appenedElement = $('#msg_list').append(makeImgMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
+                    var appenedElement = $('#msg_list').append(makeImgMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, msg.msg_no, localTime));
 
                     // 스크롤이 맨 아래에 있었을 때만 적용
                     if ( isBottom == true ) {
@@ -293,7 +303,7 @@ $(function (){
                     makeWhisperForm();
                 }
                 else {
-                    var appenedElement = $('#msg_list').append(makeImgMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
+                    var appenedElement = $('#msg_list').append(makeImgMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, msg.msg_no, localTime));
 
                     appenedElement.find('img').on('load', function() {
                         window.scrollTo(0, document.body.scrollHeight);
@@ -340,7 +350,7 @@ $(function (){
                     isBottom = true;
                 }
 
-                $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
+                $('#msg_list').append(makeMsgForm(false, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, msg.msg_no, localTime));
 
                 // 스크롤이 맨 아래에 있었을 때만 적용
                 if ( isBottom == true ) {
@@ -353,7 +363,7 @@ $(function (){
                 makeWhisperForm();
             }
             else {
-                $('#msg_list').append(makeMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, null, localTime));
+                $('#msg_list').append(makeMsgForm(true, data.user_info['role'], msg.from, msg.from_email, msg.from_name, msg.to, msg.to_name, msg.val, msg.msg_no, localTime));
                 window.scrollTo(0, document.body.scrollHeight);
             }
         }
@@ -389,6 +399,12 @@ $(function (){
                 }
                 firstDate = date;
 
+                // last_msg_no랑 같으면 여기까지 읽었음 메시지 추가
+                if ( (res['last_msg_no'] == item.msg_no) &&
+                    (res.messages[0].msg_no != res['last_msg_no']) ) {
+                    extraMsgForm = makeReadTagForm() + extraMsgForm;
+                }
+
 
                 if ( item['type'] === 'img' ) {
                     if (data.user_info['user_id'] != item['from']) {
@@ -418,11 +434,19 @@ $(function (){
 
                 if ( imgs.length === imgCnt ) {
                     if ( pktReqLog.offset == 0 ) {
-                        window.scrollTo(0, document.body.scrollHeight);
+
+                        // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
+                        if (res.messages[0].msg_no != res['last_msg_no']) {
+                            let offset = $('#msgno_' + res['last_msg_no']).offset();
+                            window.scrollTo(0, offset.top - 50);
+                        }
+                        else {
+                            window.scrollTo(0, document.body.scrollHeight);
+                        }
                     }
                     else
                     {
-                        var offset = $('#msgno_' + pktReqLog.offset).offset();
+                        let offset = $('#msgno_' + pktReqLog.offset).offset();
                         console.log(offset.top - 50);
                         window.scrollTo(0, offset.top - 50);
                     }
@@ -436,8 +460,16 @@ $(function (){
             console.log('imgs: ' + imgs.length + ', ' + preImgCnt);
             if (imgs.length === preImgCnt) {
                 if (pktReqLog.offset == 0) {
+
                     console.log('Height: ' + document.body.scrollHeight);
-                    window.scrollTo(0, document.body.scrollHeight);
+                    // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
+                    if (res.messages[0].msg_no != res['last_msg_no']) {
+                        let offset = $('#msgno_' + res['last_msg_no']).offset();
+                        window.scrollTo(0, offset.top - 50);
+                    }
+                    else {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }
                 }
                 else {
                     var offset = $('#msgno_' + pktReqLog.offset).offset();
