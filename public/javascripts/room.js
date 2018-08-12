@@ -436,7 +436,7 @@ $(function (){
                     if ( pktReqLog.offset == 0 ) {
 
                         // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
-                        if (res.messages[0].msg_no != res['last_msg_no']) {
+                        if (res.messages[0].msg_no > res['last_msg_no']) {
                             let offset = $('#msgno_' + res['last_msg_no']).offset();
                             window.scrollTo(0, offset.top - 50);
                         }
@@ -463,7 +463,7 @@ $(function (){
 
                     console.log('Height: ' + document.body.scrollHeight);
                     // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
-                    if (res.messages[0].msg_no != res['last_msg_no']) {
+                    if (res.messages[0].msg_no > res['last_msg_no']) {
                         let offset = $('#msgno_' + res['last_msg_no']).offset();
                         window.scrollTo(0, offset.top - 50);
                     }
