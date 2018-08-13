@@ -1,5 +1,18 @@
 $(function (){
 
+    function adjustLastMsgNo (messages, lastMsgNo) {
+
+        let adjustedLastMsgNo = lastMsgNo;
+
+        for (let idx=messages.length-1;0<=idx;--idx) {
+            if ( messages[idx].msg_no <= lastMsgNo ) {
+                adjustedLastMsgNo = messages[idx].msg_no;
+            }
+        }
+
+        return adjustedLastMsgNo;
+    }
+
     function cvtUTC2Local (date) {
         var now = new Date();
         date.setUTCMinutes(-now.getTimezoneOffset() + date.getMinutes());
@@ -400,8 +413,11 @@ $(function (){
                 firstDate = date;
 
                 // last_msg_no랑 같으면 여기까지 읽었음 메시지 추가
-                if ( (res['last_msg_no'] == item.msg_no) &&
-                    (res.messages[0].msg_no != res['last_msg_no']) ) {
+                let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
+
+                console.log('adjustLastMsgNo: ' + adjustedLastMsgNo);
+                if ( (adjustedLastMsgNo == item.msg_no) &&
+                    (res.messages[0].msg_no != adjustedLastMsgNo) ) {
                     extraMsgForm = makeReadTagForm() + extraMsgForm;
                 }
 
@@ -437,7 +453,9 @@ $(function (){
 
                         // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
                         if (res.messages[0].msg_no > res['last_msg_no']) {
-                            let offset = $('#msgno_' + res['last_msg_no']).offset();
+                            let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
+
+                            let offset = $('#msgno_' + adjustedLastMsgNo).offset();
                             window.scrollTo(0, offset.top - 50);
                         }
                         else {
@@ -464,7 +482,10 @@ $(function (){
                     console.log('Height: ' + document.body.scrollHeight);
                     // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
                     if (res.messages[0].msg_no > res['last_msg_no']) {
-                        let offset = $('#msgno_' + res['last_msg_no']).offset();
+
+                        let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
+
+                        let offset = $('#msgno_' + adjustedLastMsgNo).offset();
                         window.scrollTo(0, offset.top - 50);
                     }
                     else {
