@@ -29,7 +29,7 @@ $(function (){
     }
 
     function makeSepForm (date) {
-        return "<li class=\"media chat-msg-item\">" +
+        return "<li id=\"read-msg-tag\" class=\"media chat-msg-item\">" +
             "<div class=\"media-body\">" +
             "<div class=\"text-center\"><b>" +
             date +
@@ -453,9 +453,10 @@ $(function (){
 
                         // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
                         if (res.messages[0].msg_no > res['last_msg_no']) {
-                            let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
+                            //let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
 
-                            let offset = $('#msgno_' + adjustedLastMsgNo).offset();
+                            //let offset = $('#msgno_' + adjustedLastMsgNo).offset();
+                            let offset = $('#read-msg-tag').offset();
                             window.scrollTo(0, offset.top - 50);
                         }
                         else {
@@ -482,10 +483,10 @@ $(function (){
                     console.log('Height: ' + document.body.scrollHeight);
                     // 못 읽은 메시지가 있으면 마지막이 아닌 그 메시지 위치로 스크롤
                     if (res.messages[0].msg_no > res['last_msg_no']) {
+                        //let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
 
-                        let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
-
-                        let offset = $('#msgno_' + adjustedLastMsgNo).offset();
+                        //let offset = $('#msgno_' + adjustedLastMsgNo).offset();
+                        let offset = $('#read-msg-tag').offset();
                         window.scrollTo(0, offset.top - 50);
                     }
                     else {
