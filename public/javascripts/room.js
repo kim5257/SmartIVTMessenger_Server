@@ -29,7 +29,7 @@ $(function (){
     }
 
     function makeSepForm (date) {
-        return "<li id=\"read-msg-tag\" class=\"media chat-msg-item\">" +
+        return "<li class=\"media chat-msg-item\">" +
             "<div class=\"media-body\">" +
             "<div class=\"text-center\"><b>" +
             date +
@@ -39,7 +39,7 @@ $(function (){
     }
 
     function makeReadTagForm () {
-        return "<li class=\"media room-read-msg-tag\">" +
+        return "<li id=\"read-msg-tag\" class=\"media room-read-msg-tag\">" +
             "<div class=\"media-body\">" +
             "<div class=\"text-center\"><b>" +
             "여기까지 읽었습니다." +
