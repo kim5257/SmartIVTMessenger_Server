@@ -569,6 +569,70 @@ function readMsg (roomNum, from, to, limit, offset, callback) {
     });
 }
 
+function readMsg2 (roomNum, from, to, msgNo, offset, callback) {
+    /*
+    SELECT `msg_no`, `from`, `users`.`email` as `email`, `users`.`user_name` as `from_name`, `to`, `users_`.`user_name` as `to_name`, `type`, `message`, `timestamp` FROM
+    ((
+        (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp` FROM chat_server.messages
+        WHERE room_num='1532536902062' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id='naver-26042906' and room_num='1532536902062') < msg_no) and ((`from`='naver-26042906' and `to`!='wmgr') or  (`from`!='naver-26042906' and `to`='wmgr') or `to`='all' or `to`='naver-26042906' or `to`='mgr')) as msg_list
+    LEFT JOIN
+        chat_server.users
+    ON msg_list.from=users.user_id)
+    LEFT JOIN
+        chat_server.users as users_
+    ON msg_list.to=users_.user_id)
+    ORDER BY msg_no desc limit 20
+     */
+
+    let startOffset = ' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id=:from and room_num=:roomNum) < msg_no)';
+
+    let notFirstTry = (offset==0)?(''):(' and (:msgNo <= msg_no) and (msg_no < :offset )');
+
+    let toCondition =
+        ' and ((`from`=:from and `to`!=\'wmgr\') or ' +
+
+        // 관리자만 해당되는 조건...
+        ' (`from`!=:from and `to`=\'wmgr\')';
+
+    toCondition += ' or `to` IN (:to) ) ';
+
+    let query =
+        'SELECT `msg_no`, `from`, `users`.`email` as `email`, `users`.`user_name` as `from_name`, `to`, `users_`.`user_name` as `to_name`, `type`, `message`, `timestamp` FROM\n' +
+        '((\n' +
+        '    (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp` FROM chat_server.messages\n' +
+        '    WHERE room_num=:roomNum' + startOffset + notFirstTry + toCondition + ') as msg_list\n' +
+        'LEFT JOIN chat_server.users ON msg_list.from=users.user_id)\n' +
+        'LEFT JOIN chat_server.users as users_ ON msg_list.to=users_.user_id)\n' +
+        'WHERE\n' +
+        '    ((SELECT `role` FROM chat_server.users WHERE `user_id`=:from)=\'mgr\') or\n' +
+        '    ((SELECT `role` FROM chat_server.users WHERE `user_id`=:from)!=\'mgr\' and `to`!=\'wmgr\')\n' +
+        'ORDER BY msg_no desc';
+
+    let queryFmt = dbClient.prepare(query);
+    let queryArgs = {
+        roomNum: roomNum,
+        from: from,
+        to: to,
+        msgNo: msgNo,
+        offset: offset
+    };
+
+    let messages = [];
+
+    console.log(queryFmt(queryArgs));
+
+    dbClient.query(queryFmt(queryArgs)).on('result', function (result){
+        result.on('data', function (row){
+            messages.push(row);
+        });
+    }).on('end', function (){
+        callback({result: 'success', messages: messages});
+    }).on('error', function (error) {
+        console.log('error: ' + JSON.stringify(error));
+        callback({result: 'failed', msg: error});
+    });
+}
+
 function registerToken (userId, token, callback) {
     /*
     INSERT INTO chat_server.tokens(token, user_id)
@@ -778,6 +842,70 @@ function setLastMsgNo (roomNum, userList, callback) {
     });
 }
 
+function searchMsg (roomNum, from, to, keyword, callback) {
+    /*
+    SELECT `msg_no` FROM
+    ((
+        (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp` FROM chat_server.messages
+        WHERE room_num='1533295934364' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id='naver-26042906' and room_num='1533295934364') < msg_no) and ((`from`='naver-26042906' and `to`!='wmgr') or  (`from`!='naver-26042906' and `to`='wmgr') or `to`='all' or `to`='naver-26042906' or `to`='mgr')) as msg_list
+    LEFT JOIN chat_server.users ON msg_list.from=users.user_id)
+    LEFT JOIN chat_server.users as users_ ON msg_list.to=users_.user_id)
+    WHERE
+        (((SELECT `role` FROM chat_server.users WHERE `user_id`='naver-26042906')='mgr') or
+        ((SELECT `role` FROM chat_server.users WHERE `user_id`='naver-26042906')!='mgr' and `to`!='wmgr')) and
+        (message LIKE('%하하%')) and (`type` = 'text')
+    ORDER BY msg_no desc;
+     */
+
+    var startOffset = ' and ((SELECT msg_offset FROM chat_server.room_user_map where user_id=\'' + from + '\' and room_num=\'' + roomNum + '\') < msg_no)';
+
+    var toCondition =
+        ' and ((`from`=:from and `to`!=\'wmgr\') or ' +
+
+        // 관리자만 해당되는 조건...
+        ' (`from`!=:from and `to`=\'wmgr\')';
+
+    toCondition += ' or `to` IN (:to) ) ';
+
+    keyword = '%' + keyword + '%';
+
+    var query =
+        'SELECT `msg_no` FROM\n' +
+        '((\n' +
+        '    (SELECT `msg_no`, `from`, `to`, `message`, `type`, `timestamp` FROM chat_server.messages\n' +
+        '    WHERE room_num=:roomNum' + startOffset + toCondition + ') as msg_list\n' +
+        'LEFT JOIN chat_server.users ON msg_list.from=users.user_id)\n' +
+        'LEFT JOIN chat_server.users as users_ ON msg_list.to=users_.user_id)\n' +
+        'WHERE\n' +
+        '    (((SELECT `role` FROM chat_server.users WHERE `user_id`=:from)=\'mgr\') or\n' +
+        '    ((SELECT `role` FROM chat_server.users WHERE `user_id`=:from)!=\'mgr\' and `to`!=\'wmgr\')) and\n' +
+        '    (`message` LIKE(:keyword))\n' +
+        'ORDER BY msg_no desc';
+
+    var queryFmt = dbClient.prepare(query);
+    var queryArgs = {
+        roomNum: roomNum,
+        from: from,
+        to: to,
+        keyword: keyword,
+    };
+
+    var foundList = [];
+
+    console.log(queryFmt(queryArgs));
+
+    dbClient.query(queryFmt(queryArgs)).on('result', function (result){
+        result.on('data', function (row){
+            foundList.push(row);
+        });
+    }).on('end', function (){
+        callback({result: 'success', foundList: foundList});
+    }).on('error', function (error) {
+        console.log('error: ' + JSON.stringify(error));
+        callback({result: 'failed', msg: error});
+    });
+}
+
 exports.chkValidUser = chkValidUser;
 exports.registerUser = registerUser;
 exports.updateUser = updateUser;
@@ -798,6 +926,7 @@ exports.addRoomUser = addRoomUser;
 exports.delRoomUser = delRoomUser;
 exports.writeMsg = writeMsg;
 exports.readMsg = readMsg;
+exports.readMsg2 = readMsg2;
 exports.registerToken = registerToken;
 exports.unregisterToken = unregisterToken;
 exports.getTokenByRoomId = getTokenByRoomId;
@@ -805,5 +934,6 @@ exports.getTokenByRoomIdOnlyMgr = getTokenByRoomIdOnlyMgr;
 exports.getTokenByUserId = getTokenByUserId;
 exports.getLastMsgNo = getLastMsgNo;
 exports.setLastMsgNo = setLastMsgNo;
+exports.searchMsg = searchMsg;
 
 exports.showDatabases = showDatabases;

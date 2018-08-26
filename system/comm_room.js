@@ -152,6 +152,32 @@ function initRoomHandler (sock) {
             });
         });
     });
+
+    sock.on('req_msg_log2', function(msg) {
+        console.log('res_msg_log2: ' + JSON.stringify(msg));
+
+        // 찾은 메시지 위치까지 메시지 로그 가져오기
+        dbctrl.readMsg2(msg['room_num'], msg['from'], msg['to'], msg['msgNo'], msg['offset'], function (result) {
+
+            result.msgNo = msg['msgNo'];
+
+            console.log('res_msg_log2: ' + JSON.stringify(result));
+            sock.emit('res_msg_log2', result);
+        });
+    });
+
+    sock.on('req_search_msg', function(msg) {
+        console.log('res_msg_log: ' + JSON.stringify(msg));
+
+        // 마지막 읽은 메시지 ID 가져오기
+        dbctrl.searchMsg(msg['room_num'], msg['from'], msg['to'], msg['keyword'], (result) => {
+            console.log('result: ' + JSON.stringify(result));
+
+            result['keyword'] = msg['keyword'];
+
+            sock.emit('res_search_msg', result);
+        });
+    });
 }
 
 function deinitRoomHandler (sock) {

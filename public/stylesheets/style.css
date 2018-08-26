@@ -185,3 +185,8 @@ a {
     font-size: 10pt;
     color: #303030;
 }
+
+mark {
+    background-color: gray !important;
+    color: black;
+}

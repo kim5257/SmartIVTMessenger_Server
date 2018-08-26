@@ -16,6 +16,7 @@ function sendMessage_ (tokens, roomName, name, msg) {
             body: name + ': ' + msg,
             icon: 'ic_stat_notification',
             sound: 'default',
+            android_channel_id: 'DEFAULT_CHANNEL'
         }
     };
 

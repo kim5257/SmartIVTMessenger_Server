@@ -1,4 +1,24 @@
 $(function (){
+    var sock = io();
+
+    // 처음 실행하면 방에 들어감
+    var pktJoin = {
+        room_num: data.room_info['room_num']
+    };
+
+    var pktReqLog = {
+        room_num: data.room_info['room_num'],
+        from: data.user_info['user_id'],
+        to: ['all', data.user_info['user_id']],
+        limit: 20,
+        offset: 0,
+    };
+
+    var searchResult = {};
+
+    function replaceAll(str, searchStr, replaceStr) {
+        return str.split(searchStr).join(replaceStr);
+    }
 
     function adjustLastMsgNo (messages, lastMsgNo) {
 
@@ -46,6 +66,20 @@ $(function (){
             "<hr></gr></b></div>" +
             "</div>" +
             "</li>";
+    }
+
+    function makeSearchTag (element, keyword) {
+        // 기존 TAG는 제거
+        $searchTag = $('.search-tag');
+        $searchTag.replaceWith($searchTag.text());
+
+        if ( element != null ) {
+            let msg = element.text();
+            let tag = '<mark class="search-tag">' + keyword + '</mark>';
+
+            console.log('text:' + msg);
+            element.html(replaceAll(msg, keyword, tag));
+        }
     }
 
     function makeMsgForm (owner, role, fromId, fromEmail, fromName, to, toName, val, msgNo, timestamp) {
@@ -220,20 +254,31 @@ $(function (){
         });
     }
 
-    var sock = io();
+    function goSearchMsg (msgNo) {
+        let msgId = '#msgno_' + msgNo;
 
-    // 처음 실행하면 방에 들어감
-    var pktJoin = {
-        room_num: data.room_info['room_num']
-    };
+        if ( $(msgId).length != 0 ) {
+            // 이미 표시 중인 내용이면 해당 위치로 이동
+            let offset = $(msgId).offset();
+            window.scrollTo(0, offset.top - 50);
 
-    var pktReqLog = {
-        room_num: data.room_info['room_num'],
-        from: data.user_info['user_id'],
-        to: ['all', data.user_info['user_id']],
-        limit: 20,
-        offset: 0,
-    };
+            console.log('msgId: ' + msgId + ', keyword: ' + searchResult['keyword']);
+            makeSearchTag($(msgId).find('p'), searchResult['keyword']);
+        }
+        else {
+            // 없으면 해당 msgNo 까지 내용을 요청.
+            let msg = {
+                room_num: pktReqLog.room_num,
+                from: pktReqLog.from,
+                to: pktReqLog.to,
+                msgNo: msgNo,
+                offset: pktReqLog.offset
+            }
+
+            console.log('req_msg_log2: ' + JSON.stringify(msg));
+            sock.emit('req_msg_log2', msg);
+        }
+    }
 
     if ( data.user_info['role'] === 'mgr' ) {
         pktReqLog.to.push('mgr');
@@ -508,6 +553,96 @@ $(function (){
         }
     });
 
+    sock.on('res_msg_log2', function(res) {
+        console.log('res_msg_log2: ' + JSON.stringify(res));
+
+        if ( res.result==='success' && res.messages.length != 0 )
+        {
+            let extraMsgForm = '';
+
+            res.messages.forEach((item) => {
+                //var timeString = item.timestamp.substring(0, item.timestamp.length-3);
+                item.message = item.message.replace(/\n/g, '<br>');
+
+                let localTime = makeLocalTime(item.timestamp);
+                let date = localTime.slice(0, 10);
+
+                // 최초 불러오는거면 최근 날짜 저장
+                if ( lastestDate == null )
+                {
+                    lastestDate = date;
+                }
+
+                if ( firstDate != null )
+                {
+                    if ( firstDate != date )
+                    {
+                        // 날짜가 다르면 구분자 추가
+                        extraMsgForm = makeSepForm(firstDate) + extraMsgForm;
+                    }
+                }
+                firstDate = date;
+
+                // last_msg_no랑 같으면 여기까지 읽었음 메시지 추가
+                let adjustedLastMsgNo = adjustLastMsgNo(res.messages, res['last_msg_no']);
+
+                console.log('adjustLastMsgNo: ' + adjustedLastMsgNo);
+                if ( (adjustedLastMsgNo == item.msg_no) &&
+                    (res.messages[0].msg_no != adjustedLastMsgNo) ) {
+                    extraMsgForm = makeReadTagForm() + extraMsgForm;
+                }
+
+
+                if ( item['type'] === 'img' ) {
+                    if (data.user_info['user_id'] != item['from']) {
+                        extraMsgForm = makeImgMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    }
+                    else {
+                        extraMsgForm = makeImgMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    }
+                }
+                else {
+                    if (data.user_info['user_id'] != item['from']) {
+                        extraMsgForm = makeMsgForm(false, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    }
+                    else {
+                        extraMsgForm = makeMsgForm(true, data.user_info['role'], item.from, item.email, item.from_name, item.to, item.to_name, item.message, item['msg_no'], localTime) + extraMsgForm;
+                    }
+                }
+            });
+
+            let preImgCnt = $('#msg_list').find('img').length;
+            let imgCnt = preImgCnt;
+            let imgs = $('#msg_list').prepend(extraMsgForm).find('img');
+            let msgId = '#msgno_' + res.msgNo;
+
+            console.log('imgs: ' + imgs.length);
+            imgs.on('load', function() {
+                ++imgCnt;
+
+                if ( imgs.length === imgCnt ) {
+                    let offset = $(msgId).offset();
+                    window.scrollTo(0, offset.top - 50);
+
+                    console.log('msgId: ' + msgId + ', keyword: ' + searchResult['keyword']);
+                    makeSearchTag($(msgId).find('p'), searchResult['keyword']);
+                }
+            });
+
+            console.log('imgs: ' + imgs.length + ', ' + preImgCnt);
+            if (imgs.length === preImgCnt) {
+                let offset = $(msgId).offset();
+                window.scrollTo(0, offset.top - 50);
+
+                console.log('msgId: ' + msgId + ', keyword: ' + searchResult['keyword']);
+                makeSearchTag($(msgId).find('p'), searchResult['keyword']);
+            }
+
+            makeWhisperForm();
+            makeImgModalForm();
+        }
+    });
+
     sock.on('req_except_user', function(msg) {
         console.log('excepted ' + msg['user_id']);
 
@@ -515,6 +650,28 @@ $(function (){
 
         // 사용자 제거
         $(userItemId).remove();
+    });
+
+    sock.on('res_search_msg', function(msg) {
+        console.log('res_search_msg: ' + JSON.stringify(msg));
+
+        searchResult['total'] = msg.foundList.length;
+        searchResult['cur'] = 0;
+        searchResult['foundList'] = msg['foundList'];
+        searchResult['keyword'] = msg['keyword'];
+
+        console.log('searchResult: ' + JSON.stringify(searchResult));
+
+        // 결과를 밑에 표시
+        if ( 0 < searchResult['total']) {
+            $('#search-result-msg').text((searchResult['cur'] + 1) + '/' + searchResult['total']);
+
+            // 첫 번째 찾은 메시지로 위치 스크롤
+            goSearchMsg(searchResult['foundList'][searchResult['cur']]['msg_no']);
+        }
+        else {
+            $('#search-result-msg').text('결과 없음');
+        }
     });
 
     sock.emit('join_room', pktJoin);
@@ -709,6 +866,59 @@ $(function (){
 
         $('#send-img').show();
         $('#send-msg').hide();
+    });
+
+    $('#btn-do-search').click(function() {
+        console.log('click');
+        $('#room-top-bar').attr('style', 'display: none !important;');
+        $('#search-form').show();
+
+        $('#send-img').hide();
+        $('#send-msg').hide();
+        $('#search-result').show();
+
+        $('#inp-search').val('');
+    });
+
+    $('#btn-back-search').click(function() {
+        $('#search-form').hide();
+        $('#room-top-bar').attr('style', 'display: block;');
+
+        $('#search-result').hide();
+        $('#send-msg').show();
+
+        makeSearchTag(null, null);
+    });
+
+    $('#btn-search').click(function() {
+
+        let pktReqSearch = JSON.parse(JSON.stringify(pktReqLog));
+
+        pktReqSearch['keyword'] = $('#inp-search').val();
+
+        sock.emit('req_search_msg', pktReqSearch);
+    });
+
+    $('#btn-search-up').click(function() {
+        console.log('search up');
+
+        if ( searchResult['cur']+1 < searchResult['total'] ) {
+            ++searchResult['cur'];
+        }
+
+        $('#search-result-msg').text((searchResult['cur'] + 1) + '/' + searchResult['total']);
+        goSearchMsg(searchResult['foundList'][searchResult['cur']]['msg_no']);
+    });
+
+    $('#btn-search-down').click(function() {
+        console.log('search down');
+
+        if ( 0 < searchResult['cur'] ) {
+            --searchResult['cur'];
+        }
+
+        $('#search-result-msg').text((searchResult['cur'] + 1) + '/' + searchResult['total']);
+        goSearchMsg(searchResult['foundList'][searchResult['cur']]['msg_no']);
     });
 });
 
