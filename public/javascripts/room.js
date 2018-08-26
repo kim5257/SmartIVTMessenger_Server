@@ -70,8 +70,10 @@ $(function (){
 
     function makeSearchTag (element, keyword) {
         // 기존 TAG는 제거
-        $searchTag = $('.search-tag');
-        $searchTag.replaceWith($searchTag.text());
+        $('.search-tag').each((index, item) => {
+            console.log('text: ' + $(item).text());
+            item.replaceWith($(item).text());
+        });
 
         if ( element != null ) {
             let msg = element.text();
@@ -626,6 +628,9 @@ $(function (){
 
                     console.log('msgId: ' + msgId + ', keyword: ' + searchResult['keyword']);
                     makeSearchTag($(msgId).find('p'), searchResult['keyword']);
+
+                    // 마지막 읽은 위치 갱신
+                    pktReqLog.offset = res.messages[res.messages.length - 1]['msg_no'];
                 }
             });
 
@@ -636,6 +641,9 @@ $(function (){
 
                 console.log('msgId: ' + msgId + ', keyword: ' + searchResult['keyword']);
                 makeSearchTag($(msgId).find('p'), searchResult['keyword']);
+
+                // 마지막 읽은 위치 갱신
+                pktReqLog.offset = res.messages[res.messages.length - 1]['msg_no'];
             }
 
             makeWhisperForm();
